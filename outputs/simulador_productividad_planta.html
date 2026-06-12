@@ -1,0 +1,1942 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Simulador Estratégico de Productividad Industrial</title>
+  <style>
+    :root {
+      --bg: #eef3f6;
+      --panel: #ffffff;
+      --ink: #102026;
+      --muted: #64757c;
+      --line: #d9e3e8;
+      --brand: #009688;
+      --brand-dark: #00796b;
+      --accent: #f59e0b;
+      --blue: #1d4ed8;
+      --red: #e11d48;
+      --green: #16a34a;
+      --violet: #7c3aed;
+      --shadow: 0 18px 55px rgba(16, 32, 38, .10);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background:
+        radial-gradient(circle at top left, rgba(0, 150, 136, .16), transparent 34vw),
+        linear-gradient(135deg, #eef3f6 0%, #f8fbfc 48%, #edf4f8 100%);
+      color: var(--ink);
+    }
+
+    button, input, select, textarea { font: inherit; }
+
+    .app-shell {
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: 76px 1fr;
+    }
+
+    aside {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      width: 76px;
+      overflow: hidden;
+      background:
+        linear-gradient(180deg, rgba(5, 35, 39, .98), rgba(2, 63, 67, .96)),
+        #052327;
+      color: #eef7f5;
+      padding: 18px;
+      z-index: 20;
+      transition: width .22s ease, box-shadow .22s ease;
+      box-shadow: 12px 0 36px rgba(5, 35, 39, .08);
+    }
+
+    aside:hover,
+    aside:focus-within {
+      width: 320px;
+      overflow: auto;
+      box-shadow: 24px 0 60px rgba(5, 35, 39, .20);
+    }
+
+    .rail-mark {
+      width: 40px;
+      height: 40px;
+      border-radius: 14px;
+      display: grid;
+      place-items: center;
+      background: rgba(185, 244, 234, .14);
+      color: #b9f4ea;
+      font-weight: 1000;
+      font-size: 18px;
+      margin-bottom: 18px;
+      transition: opacity .18s ease;
+    }
+
+    .rail-mark::after {
+      content: "Filtros";
+      position: absolute;
+      left: 18px;
+      top: 70px;
+      writing-mode: vertical-rl;
+      text-orientation: mixed;
+      font-size: 11px;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: rgba(238, 247, 245, .62);
+    }
+
+    aside:hover .rail-mark,
+    aside:focus-within .rail-mark { opacity: 0; }
+
+    aside .brand,
+    aside .control-group {
+      width: 284px;
+      opacity: 0;
+      transform: translateX(-10px);
+      transition: opacity .18s ease, transform .18s ease;
+    }
+
+    aside:hover .brand,
+    aside:hover .control-group,
+    aside:focus-within .brand,
+    aside:focus-within .control-group {
+      opacity: 1;
+      transform: translateX(0);
+    }
+
+    .brand {
+      display: grid;
+      gap: 8px;
+      padding-bottom: 18px;
+      border-bottom: 1px solid rgba(255,255,255,.16);
+    }
+
+    .brand h1 {
+      margin: 0;
+      font-size: 24px;
+      line-height: 1.1;
+      letter-spacing: 0;
+    }
+
+    .brand p {
+      margin: 0;
+      color: #b7c9c7;
+      line-height: 1.45;
+      font-size: 13px;
+    }
+
+    .control-group {
+      margin-top: 20px;
+      display: grid;
+      gap: 12px;
+    }
+
+    label {
+      display: grid;
+      gap: 5px;
+      color: inherit;
+      font-weight: 700;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+    }
+
+    input, select, textarea {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      color: var(--ink);
+      min-height: 38px;
+      padding: 8px 10px;
+      outline: none;
+    }
+
+    aside input, aside select {
+      border-color: rgba(255,255,255,.18);
+      background: rgba(255,255,255,.08);
+      color: #fff;
+    }
+
+    aside select option { color: #162023; }
+
+    input:focus, select:focus, textarea:focus {
+      border-color: var(--brand);
+      box-shadow: 0 0 0 3px rgba(15, 118, 110, .15);
+    }
+
+    .segmented {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 4px;
+      padding: 4px;
+      background: rgba(255,255,255,.08);
+      border-radius: 8px;
+    }
+
+    .segmented button {
+      min-height: 34px;
+      border: 0;
+      border-radius: 6px;
+      color: #dcefed;
+      background: transparent;
+      cursor: pointer;
+      font-weight: 700;
+    }
+
+    .segmented button.active {
+      color: #0b2d2b;
+      background: #b9f4ea;
+    }
+
+    .button-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .btn {
+      min-height: 40px;
+      border-radius: 8px;
+      border: 1px solid transparent;
+      padding: 9px 12px;
+      font-weight: 800;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: transform .15s ease, background .15s ease;
+    }
+
+    .btn:hover { transform: translateY(-1px); }
+    .btn.primary { background: var(--brand); color: #fff; }
+    .btn.primary:hover { background: var(--brand-dark); }
+    .btn.secondary { background: #fff; color: var(--ink); border-color: var(--line); }
+    .btn.ghost { background: rgba(255,255,255,.08); color: #fff; border-color: rgba(255,255,255,.16); }
+    .btn.warn { background: #fff7ed; color: #9a3412; border-color: #fed7aa; }
+
+    main {
+      padding: 24px 28px;
+      display: grid;
+      gap: 18px;
+      align-content: start;
+      min-width: 0;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .topbar-main {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      min-width: 0;
+    }
+
+    .topbar h2 {
+      margin: 0;
+      font-size: 26px;
+      letter-spacing: 0;
+    }
+
+    .topbar p {
+      margin: 4px 0 0;
+      color: var(--muted);
+    }
+
+    .view-tabs {
+      display: inline-grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+      padding: 6px;
+      background: rgba(255, 255, 255, .72);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      box-shadow: 0 10px 30px rgba(16, 32, 38, .08);
+      margin-left: auto;
+    }
+
+    .view-tabs button {
+      border: 0;
+      border-radius: 10px;
+      background: transparent;
+      color: var(--muted);
+      cursor: pointer;
+      font-weight: 900;
+      min-width: 132px;
+      min-height: 40px;
+      padding: 8px 14px;
+    }
+
+    .view-tabs button.active {
+      background: #102026;
+      color: #fff;
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .12);
+    }
+
+    .view-panel.hidden { display: none !important; }
+
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(170px, 1fr));
+      gap: 12px;
+    }
+
+    .kpi, .panel, .entry-panel {
+      background: rgba(255, 255, 255, .92);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(12px);
+    }
+
+    .kpi {
+      position: relative;
+      overflow: hidden;
+      padding: 18px;
+      display: grid;
+      grid-template-columns: 58px 1fr;
+      gap: 14px;
+      min-height: 150px;
+      align-items: stretch;
+    }
+
+    .kpi::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: 34px;
+      background: linear-gradient(135deg, rgba(0, 150, 136, .24), rgba(29, 78, 216, .10));
+      clip-path: polygon(0 70%, 10% 40%, 20% 72%, 34% 36%, 47% 62%, 61% 78%, 74% 56%, 88% 22%, 100% 45%, 100% 100%, 0 100%);
+    }
+
+    .kpi.orange::after,
+    .kpi.violet::after,
+    .kpi.red::after,
+    .kpi.blue::after { background: linear-gradient(135deg, rgba(0, 150, 136, .20), rgba(17, 94, 89, .06)); }
+
+    .kpi-icon {
+      width: 56px;
+      height: 56px;
+      border-radius: 999px;
+      display: grid;
+      place-items: center;
+      color: #009688;
+      background: #dff8f4;
+      font-size: 25px;
+      font-weight: 1000;
+    }
+
+    .kpi.orange .kpi-icon,
+    .kpi.violet .kpi-icon,
+    .kpi.red .kpi-icon,
+    .kpi.blue .kpi-icon { color: var(--brand-dark); background: #dff8f4; }
+
+    .kpi-body { display: grid; gap: 8px; min-width: 0; }
+
+    .kpi span {
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+    }
+
+    .kpi strong {
+      font-size: clamp(22px, 1.8vw, 28px);
+      line-height: 1;
+    }
+
+    .kpi small { color: var(--muted); line-height: 1.35; }
+
+    .dashboard-hero {
+      display: grid;
+      grid-template-columns: 56px 1fr;
+      align-items: center;
+      gap: 16px;
+      padding: 2px 0 4px;
+    }
+
+    .hero-icon {
+      width: 56px;
+      height: 56px;
+      border-radius: 16px;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(135deg, #dff8f4, #e7f0ff);
+      color: var(--brand);
+      font-size: 30px;
+      font-weight: 1000;
+      box-shadow: 0 14px 34px rgba(0, 150, 136, .16);
+    }
+
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: 1.05fr .95fr 1.2fr;
+      gap: 14px;
+    }
+
+    .wide-panel { grid-column: span 2; }
+
+    .workspace {
+      display: grid;
+      grid-template-columns: minmax(360px, .82fr) minmax(330px, .68fr) minmax(560px, 1.2fr);
+      gap: 16px;
+      align-items: start;
+      min-width: 0;
+    }
+
+    .data-tools {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 16px;
+    }
+
+    .upload-zone {
+      padding: 16px 52px;
+      display: grid;
+      grid-template-columns: minmax(320px, 500px) 180px 1fr;
+      align-items: end;
+      gap: 18px;
+    }
+
+    .upload-zone input { background: #fff; }
+
+    .upload-zone .btn { min-height: 40px; }
+
+    .compact-note {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.35;
+      padding-bottom: 4px;
+    }
+
+    .data-tools .panel-header {
+      border-bottom: 0;
+      padding: 22px 26px 4px;
+    }
+
+    .import-title {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .soft-icon {
+      width: 34px;
+      height: 34px;
+      border-radius: 10px;
+      display: grid;
+      place-items: center;
+      background: #e3faf6;
+      color: var(--brand);
+      font-weight: 1000;
+      font-size: 18px;
+    }
+
+    .mode-pills {
+      display: inline-grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 4px;
+      padding: 4px;
+      border-radius: 12px;
+      background: #f4f7f8;
+      margin-left: auto;
+    }
+
+    .mode-pills span {
+      min-width: 82px;
+      min-height: 30px;
+      display: grid;
+      place-items: center;
+      border-radius: 9px;
+      color: var(--muted);
+      font-weight: 900;
+      font-size: 12px;
+    }
+
+    .mode-pills span.active {
+      background: #dff8f4;
+      color: var(--brand-dark);
+    }
+
+    .helper-list {
+      margin: 0;
+      padding: 0 16px 16px 30px;
+      color: var(--muted);
+      line-height: 1.55;
+    }
+
+    .entry-panel { overflow: hidden; }
+    .edit-panel { overflow: hidden; }
+    .entry-panel,
+    .edit-panel {
+      min-height: 0;
+    }
+
+    .data-panel .panel-header h3,
+    .data-panel .panel-header strong {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .workspace > .panel,
+    .workspace > .entry-panel {
+      min-width: 0;
+      min-height: 0;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .panel-header {
+      min-height: 52px;
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .panel-header h3 {
+      margin: 0;
+      font-size: 16px;
+      letter-spacing: 0;
+    }
+
+    .panel-header small { color: var(--muted); }
+
+    .calendar-nav {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .icon-btn {
+      width: 34px;
+      height: 34px;
+      border-radius: 14px;
+      border: 1px solid var(--line);
+      background: #fff;
+      cursor: pointer;
+      font-weight: 900;
+    }
+
+    .calendar {
+      padding: 18px 24px 8px;
+      display: grid;
+      gap: 14px;
+    }
+
+    .weekdays, .days {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 8px;
+    }
+
+    .weekdays div {
+      color: var(--muted);
+      text-align: center;
+      font-size: 11px;
+      font-weight: 900;
+      text-transform: uppercase;
+    }
+
+    .day {
+      aspect-ratio: 1;
+      min-height: 44px;
+      border: 1px solid transparent;
+      border-radius: 10px;
+      background: transparent;
+      display: grid;
+      place-items: center;
+      cursor: pointer;
+      position: relative;
+      font-weight: 800;
+      font-size: 14px;
+    }
+
+    .day:hover { background: #f4faf9; border-color: #d4ebe8; }
+    .day.muted { color: #a7b4b8; background: rgba(248,250,251,.74); }
+    .day.has-data::after {
+      content: "";
+      position: absolute;
+      width: 7px;
+      height: 7px;
+      border-radius: 99px;
+      background: var(--brand);
+      bottom: 6px;
+    }
+    .day.selected {
+      border-color: var(--brand);
+      background: var(--brand);
+      color: #fff;
+      box-shadow: 0 12px 28px rgba(0, 150, 136, .28);
+    }
+
+    .day.selected::after { background: #fff; }
+
+    .selected-summary {
+      margin: 4px 24px 22px;
+      padding-top: 18px;
+      border-top: 1px solid var(--line);
+      display: grid;
+      gap: 14px;
+    }
+
+    .selected-summary h4 {
+      margin: 0;
+      font-size: 15px;
+    }
+
+    .selected-summary p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .summary-metrics {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+    }
+
+    .summary-metrics strong {
+      display: block;
+      font-size: 20px;
+      margin-bottom: 4px;
+    }
+
+    .summary-metrics span {
+      color: var(--muted);
+      font-size: 11px;
+    }
+
+    form {
+      padding: 12px 16px 14px;
+      display: grid;
+      gap: 10px;
+    }
+
+    .edit-panel form { padding: 12px 18px 18px; }
+
+    .notes-field {
+      min-height: 60px;
+      resize: vertical;
+    }
+
+    .records-toolbar {
+      padding: 14px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .mini-select,
+    .search-box {
+      border: 1px solid var(--line);
+      background: #fff;
+      border-radius: 10px;
+      min-height: 40px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 0 12px;
+      color: var(--muted);
+      font-weight: 800;
+      font-size: 13px;
+    }
+
+    .search-box input {
+      border: 0;
+      box-shadow: none;
+      min-height: 34px;
+      padding: 0;
+      min-width: 170px;
+    }
+
+    .records-footer {
+      padding: 12px 18px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      color: var(--muted);
+      font-size: 12px;
+      border-top: 1px solid var(--line);
+    }
+
+    .pager {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--ink);
+      font-weight: 900;
+    }
+
+    .page-dot {
+      width: 30px;
+      height: 30px;
+      border-radius: 8px;
+      display: grid;
+      place-items: center;
+      background: var(--brand);
+      color: #fff;
+    }
+
+    .quick-strip {
+      display: grid;
+      grid-template-columns: 1.45fr .55fr;
+      gap: 16px;
+    }
+
+    .quick-inner {
+      padding: 18px 22px;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+    }
+
+    .quick-item {
+      display: grid;
+      grid-template-columns: 48px 1fr;
+      gap: 12px;
+      align-items: center;
+      min-height: 84px;
+    }
+
+    .quick-item strong {
+      display: block;
+      font-size: 24px;
+      line-height: 1;
+    }
+
+    .quick-item small {
+      color: var(--muted);
+      line-height: 1.35;
+    }
+
+    .actions-grid {
+      padding: 18px 22px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .action-card {
+      border: 0;
+      border-radius: 12px;
+      background: #f7fafb;
+      min-height: 78px;
+      padding: 12px;
+      display: grid;
+      place-items: center;
+      text-align: center;
+      color: var(--ink);
+      font-weight: 900;
+      cursor: pointer;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 9px 12px;
+    }
+
+    .wide { grid-column: 1 / -1; }
+
+    .chart-grid {
+      display: grid;
+      grid-template-columns: repeat(6, minmax(180px, 1fr));
+      gap: 14px;
+    }
+
+    .chart-grid > .panel { grid-column: span 2; }
+    .chart-grid > .panel:nth-last-child(2) { grid-column: span 2; }
+    .chart-grid > .panel:last-child { grid-column: span 4; }
+
+    .panel { overflow: hidden; }
+    .chart-wrap { padding: 12px 16px 16px; }
+    svg { display: block; width: 100%; height: 250px; }
+
+    .chart-detail {
+      margin: 0 14px 14px;
+      padding: 12px 14px;
+      border: 1px solid #cfe7e3;
+      border-radius: 12px;
+      background: #f4fbfa;
+      color: #314246;
+      line-height: 1.45;
+      min-height: 54px;
+    }
+
+    .chart-tooltip {
+      position: fixed;
+      z-index: 50;
+      pointer-events: none;
+      opacity: 0;
+      transform: translate(-50%, calc(-100% - 14px));
+      max-width: 280px;
+      padding: 9px 12px;
+      border-radius: 12px;
+      background: rgba(16, 32, 38, .96);
+      color: #fff;
+      box-shadow: 0 18px 45px rgba(16, 32, 38, .24);
+      font-size: 12px;
+      line-height: 1.45;
+      transition: opacity .12s ease;
+    }
+
+    td:first-child,
+    th:first-child,
+    td:nth-child(4),
+    th:nth-child(4),
+    td:nth-child(5),
+    th:nth-child(5) {
+      white-space: nowrap;
+    }
+
+    .chart-tooltip.visible { opacity: 1; }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(220px, 1fr));
+      gap: 12px;
+    }
+
+    .stat-card {
+      padding: 18px;
+      display: grid;
+      grid-template-columns: 58px 1fr;
+      gap: 14px;
+      align-items: center;
+      background: rgba(255,255,255,.92);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      box-shadow: var(--shadow);
+    }
+
+    .stat-icon {
+      width: 56px;
+      height: 56px;
+      border-radius: 999px;
+      display: grid;
+      place-items: center;
+      background: #dff8f4;
+      color: var(--brand);
+      font-weight: 1000;
+      font-size: 26px;
+    }
+
+    .stat-card.warn .stat-icon,
+    .stat-card.blue .stat-icon { background: #dff8f4; color: var(--brand-dark); }
+
+    .stat-card strong { font-size: 18px; }
+
+    .stat-card p { font-size: 14px; }
+
+    .stat-card h4 {
+      margin: 0 0 8px;
+      font-size: 13px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: .04em;
+    }
+
+    .stat-card p { margin: 8px 0 0; color: var(--muted); line-height: 1.45; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+
+    th, td {
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      color: var(--muted);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+      background: #f8fafb;
+    }
+
+    .record-row { cursor: pointer; }
+    .record-row:hover { background: #eef8f6; }
+
+    .table-scroll {
+      max-height: none;
+      flex: 1;
+      overflow: auto;
+    }
+
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      min-height: 24px;
+      border-radius: 999px;
+      padding: 3px 9px;
+      font-size: 12px;
+      font-weight: 800;
+      background: #eef8f6;
+      color: var(--brand-dark);
+    }
+
+    .report {
+      padding: 14px 16px 18px;
+      line-height: 1.55;
+      color: #314246;
+    }
+
+    .report strong { color: var(--ink); }
+
+    .empty {
+      color: var(--muted);
+      padding: 24px;
+      text-align: center;
+    }
+
+    @media (max-width: 1120px) {
+      .app-shell { grid-template-columns: 1fr; }
+      aside { position: static; height: auto; }
+      .workspace, .chart-grid, .stats-grid { grid-template-columns: 1fr; }
+      .quick-strip, .quick-inner, .actions-grid { grid-template-columns: 1fr; }
+      .app-shell { grid-template-columns: 1fr; }
+      aside { position: static; width: auto; height: auto; }
+      aside .brand, aside .control-group { width: auto; opacity: 1; transform: none; }
+      .rail-mark { display: none; }
+      .data-tools { grid-template-columns: 1fr; }
+      .upload-zone { grid-template-columns: 1fr; align-items: stretch; }
+      .kpi-grid { grid-template-columns: repeat(2, minmax(160px, 1fr)); }
+    }
+
+    @media (max-width: 640px) {
+      main { padding: 14px; }
+      .kpi-grid, .form-grid { grid-template-columns: 1fr; }
+      .button-row { grid-template-columns: 1fr; }
+      svg { height: 250px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <aside>
+      <div class="rail-mark">P</div>
+      <div class="brand">
+        <h1>Productividad Planta</h1>
+        <p>Simulador estratégico con carga diaria desde calendario, indicadores automáticos y lectura ejecutiva de causas.</p>
+      </div>
+
+      <div class="control-group">
+        <label>Vista
+          <div class="segmented" role="group" aria-label="Tipo de filtro">
+            <button type="button" class="active" data-view="month">Mes</button>
+            <button type="button" data-view="quarter">Trim.</button>
+            <button type="button" data-view="year">Año</button>
+          </div>
+        </label>
+
+        <label>Año
+          <select id="filterYear"></select>
+        </label>
+
+        <label id="monthLabel">Mes
+          <select id="filterMonth"></select>
+        </label>
+
+        <label id="quarterLabel" hidden>Trimestre
+          <select id="filterQuarter">
+            <option value="1">Q1 · Ene-Mar</option>
+            <option value="2">Q2 · Abr-Jun</option>
+            <option value="3">Q3 · Jul-Sep</option>
+            <option value="4">Q4 · Oct-Dic</option>
+          </select>
+        </label>
+
+        <button class="btn primary" id="applyFilters" type="button">Actualizar tablero</button>
+        <div class="button-row">
+          <button class="btn ghost" id="loadDemo" type="button">Datos demo</button>
+          <button class="btn ghost" id="exportCsv" type="button">Exportar CSV</button>
+        </div>
+        <button class="btn warn" id="clearData" type="button">Borrar datos guardados</button>
+      </div>
+    </aside>
+
+    <main>
+      <section class="topbar">
+        <div class="topbar-main">
+          <div>
+          <h2>Dashboard operativo y estratégico</h2>
+          <p id="periodLabel">Periodo seleccionado</p>
+          </div>
+          <span class="chip" id="recordCount">0 registros</span>
+        </div>
+        <div class="view-tabs" role="tablist" aria-label="Vistas del simulador">
+          <button type="button" class="active" id="tabData" data-screen="data">Datos</button>
+          <button type="button" id="tabDashboard" data-screen="dashboard">Dashboard</button>
+        </div>
+      </section>
+
+      <section class="kpi-grid view-panel dashboard-panel hidden" aria-label="Indicadores principales">
+        <div class="kpi"><div class="kpi-icon">◔</div><div class="kpi-body"><span>Productividad promedio</span><strong id="kpiProd">0.00</strong><small>Toneladas por hora efectiva</small></div></div>
+        <div class="kpi orange"><div class="kpi-icon">⏱</div><div class="kpi-body"><span>% parada promedio</span><strong id="kpiStop">0.0%</strong><small>Horas parada sobre horas totales</small></div></div>
+        <div class="kpi violet"><div class="kpi-icon">⚙</div><div class="kpi-body"><span>Top causa</span><strong id="kpiTopCause">-</strong><small id="kpiTopCauseSub">Sin datos</small></div></div>
+        <div class="kpi red"><div class="kpi-icon">↘</div><div class="kpi-body"><span>Impacto paradas</span><strong id="kpiStopImpact">0.00</strong><small>Coeficiente en regresión múltiple</small></div></div>
+        <div class="kpi blue"><div class="kpi-icon">Σ</div><div class="kpi-body"><span>Modelo OP / Parada</span><strong id="kpiModel">-</strong><small>Regresión múltiple</small></div></div>
+      </section>
+
+      <section class="data-tools view-panel data-panel">
+        <div class="panel">
+          <div class="panel-header">
+            <h3 class="import-title"><span class="soft-icon">⇪</span>Importar Excel o CSV</h3>
+            <small>Columnas requeridas: Fecha, OP, Toneladas, Horas operación, Horas parada, Causa, Equipo</small>
+          </div>
+          <div class="upload-zone">
+            <label>Archivo de datos
+              <input type="file" id="fileUpload" accept=".xlsx,.xls,.csv,.txt">
+            </label>
+            <button class="btn primary" id="importFile" type="button">Cargar archivo</button>
+            <div class="compact-note" id="importStatus">Formato aceptado: fecha día/mes/año, año-mes-día o serial Excel. Lo importado queda editable.</div>
+          </div>
+        </div>
+      </section>
+
+      <section class="workspace view-panel data-panel">
+        <div class="entry-panel">
+          <div class="panel-header">
+            <h3><span class="soft-icon">□</span>Calendario de carga</h3>
+            <div class="calendar-nav">
+              <button class="icon-btn" id="prevMonth" type="button" title="Mes anterior">‹</button>
+              <strong id="calendarTitle"></strong>
+              <button class="icon-btn" id="nextMonth" type="button" title="Mes siguiente">›</button>
+            </div>
+          </div>
+          <div class="calendar">
+            <div class="weekdays"><div>Lun</div><div>Mar</div><div>Mié</div><div>Jue</div><div>Vie</div><div>Sáb</div><div>Dom</div></div>
+            <div class="days" id="calendarDays"></div>
+          </div>
+          <div class="selected-summary">
+            <div>
+              <h4>Resumen del día seleccionado</h4>
+              <p id="selectedDateLabel">Sin datos cargados</p>
+            </div>
+            <div class="summary-metrics">
+              <div><strong id="dayOp">0</strong><span>OP</span></div>
+              <div><strong id="dayTons">0</strong><span>Toneladas</span></div>
+              <div><strong id="dayHours">0</strong><span>Horas operación</span></div>
+              <div><strong id="dayStops">0</strong><span>Horas parada</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel edit-panel">
+          <div class="panel-header">
+            <h3><span class="soft-icon">✎</span>Edición del día</h3>
+            <div class="mode-pills"><span class="active">Manual</span><span>Importado</span></div>
+          </div>
+          <form id="entryForm">
+            <div class="form-grid">
+              <label>Fecha
+                <input type="date" id="date" min="2023-01-01" required>
+              </label>
+              <label>OP
+                <input type="number" id="orders" min="0" step="1" required>
+              </label>
+              <label>Toneladas
+                <input type="number" id="tons" min="0" step="0.01" required>
+              </label>
+              <label>Horas operación
+                <input type="number" id="opHours" min="0" step="0.1" required>
+              </label>
+              <label>Horas parada
+                <input type="number" id="stopHours" min="0" step="0.1" required>
+              </label>
+              <label>Causa principal
+                <select id="cause" required>
+                  <option>Mantenimiento</option>
+                  <option>Daño de equipo</option>
+                  <option>Cambio de referencia</option>
+                  <option>Falta de material</option>
+                  <option>Operación</option>
+                  <option>Calidad</option>
+                </select>
+              </label>
+              <label class="wide">Equipo / área afectada
+                <input id="equipment" placeholder="Ej. Línea 2, Molino, Empaque, Caldera" required>
+              </label>
+              <label class="wide">Notas opcional
+                <textarea class="notes-field" id="notes" placeholder="Agregar notas..."></textarea>
+              </label>
+            </div>
+            <div class="button-row">
+              <button class="btn primary" type="submit">Guardar cambios</button>
+              <button class="btn secondary" id="deleteDay" type="button">Eliminar día</button>
+            </div>
+          </form>
+        </div>
+
+        <div class="panel">
+          <div class="panel-header">
+            <h3><span class="soft-icon">▽</span>Registros filtrados</h3>
+            <small>Se recalcula al guardar o filtrar</small>
+          </div>
+          <div class="records-toolbar">
+            <button class="mini-select" type="button">Filtros⌄</button>
+            <label class="search-box" aria-label="Buscar registros">⌕
+              <input id="recordSearch" placeholder="Buscar...">
+            </label>
+          </div>
+          <div class="table-scroll">
+            <table>
+              <thead>
+                <tr><th>Fecha</th><th>OP</th><th>Ton</th><th>Prod.</th><th>% parada</th><th>Causa</th><th>Equipo</th></tr>
+              </thead>
+              <tbody id="recordsBody"></tbody>
+            </table>
+          </div>
+          <div class="records-footer">
+            <span id="recordsRange">Mostrando 0 registros</span>
+            <span class="pager">‹ <span class="page-dot">1</span> ›</span>
+            <span>Filas por página&nbsp; <strong>10</strong></span>
+          </div>
+        </div>
+      </section>
+
+      <section class="quick-strip view-panel data-panel">
+        <div class="panel">
+          <div class="panel-header"><h3><span class="soft-icon">⌁</span>Indicadores rápidos</h3></div>
+          <div class="quick-inner">
+            <div class="quick-item"><span class="kpi-icon">↗</span><div><strong id="quickProd">0</strong><small>Productividad prom.<br>ton/h</small></div></div>
+            <div class="quick-item"><span class="kpi-icon">⌚</span><div><strong id="quickStop">0%</strong><small>% Parada prom.</small></div></div>
+            <div class="quick-item"><span class="kpi-icon">⚙</span><div><strong id="quickCause">-</strong><small>Top causa</small></div></div>
+            <div class="quick-item"><span class="kpi-icon">↘</span><div><strong id="quickImpact">0</strong><small>Impacto paradas</small></div></div>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="panel-header"><h3><span class="soft-icon">⚡</span>Acciones rápidas</h3></div>
+          <div class="actions-grid">
+            <button class="action-card" id="quickExport" type="button">Exportar datos<br><small>CSV / Excel</small></button>
+            <button class="action-card" id="quickClearFilters" type="button">Limpiar filtros<br><small>Ver todos</small></button>
+          </div>
+        </div>
+      </section>
+
+      <section class="stats-grid view-panel dashboard-panel hidden">
+        <div class="stat-card">
+          <div class="stat-icon">⌁</div>
+          <div>
+            <h4>Correlación OP vs productividad</h4>
+            <strong id="corrOp">0.00</strong>
+            <p id="corrOpText">Sin lectura suficiente.</p>
+          </div>
+        </div>
+        <div class="stat-card warn">
+          <div class="stat-icon">∴</div>
+          <div>
+            <h4>Correlación parada vs productividad</h4>
+            <strong id="corrStop">0.00</strong>
+            <p id="corrStopText">Sin lectura suficiente.</p>
+          </div>
+        </div>
+        <div class="stat-card blue">
+          <div class="stat-icon">Σ</div>
+          <div>
+            <h4>Regresión múltiple</h4>
+            <strong id="regression">-</strong>
+            <p id="regressionText">Productividad = β0 + β1(OP) + β2(Horas parada).</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="chart-grid view-panel dashboard-panel hidden">
+        <div class="panel">
+          <div class="panel-header"><h3>Dispersión OP vs productividad</h3><small>Relación carga-productividad</small></div>
+          <div class="chart-wrap"><svg id="scatterChart" role="img" aria-label="Gráfico de dispersión"></svg></div>
+          <div class="chart-detail" id="scatterDetail">Selecciona un punto para ver qué ocurrió ese día.</div>
+        </div>
+        <div class="panel">
+          <div class="panel-header"><h3>Horas detenidas por causa</h3><small>Tabla dinámica visual</small></div>
+          <div class="chart-wrap"><svg id="causeBarChart" role="img" aria-label="Barras por causa"></svg></div>
+        </div>
+        <div class="panel">
+          <div class="panel-header"><h3>Productividad vs paradas acumuladas</h3><small>Serie temporal</small></div>
+          <div class="chart-wrap"><svg id="timeChart" role="img" aria-label="Serie temporal"></svg></div>
+        </div>
+        <div class="panel">
+          <div class="panel-header"><h3>Ranking y comparación</h3><small>Equipos críticos y tipo de parada</small></div>
+          <div class="table-scroll">
+            <table>
+              <thead><tr><th>Equipo / causa</th><th>Horas</th><th>Participación</th></tr></thead>
+              <tbody id="rankingBody"></tbody>
+            </table>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="panel-header"><h3>Reporte ejecutivo</h3><small>Lectura gerencial</small></div>
+          <div class="report" id="report"></div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+  <div class="chart-tooltip" id="chartTooltip"></div>
+
+  <script>
+    const STORAGE_KEY = "industrial-productivity-simulator-v1";
+    const months = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
+    const fmt = new Intl.NumberFormat("es-CO", { maximumFractionDigits: 2 });
+    const pct = new Intl.NumberFormat("es-CO", { style: "percent", maximumFractionDigits: 1 });
+    const state = {
+      records: [],
+      screen: "data",
+      view: "month",
+      filterYear: 2026,
+      filterMonth: 5,
+      filterQuarter: 2,
+      calendarYear: 2026,
+      calendarMonth: 5,
+      selectedDate: "2026-06-11"
+    };
+
+    const $ = (id) => document.getElementById(id);
+
+    function productivity(r) {
+      return Number(r.opHours) > 0 ? Number(r.tons) / Number(r.opHours) : 0;
+    }
+
+    function stopRate(r) {
+      const total = Number(r.opHours) + Number(r.stopHours);
+      return total > 0 ? Number(r.stopHours) / total : 0;
+    }
+
+    function loadRecords() {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (raw) {
+        state.records = JSON.parse(raw);
+      } else {
+        state.records = demoData();
+        saveRecords();
+      }
+    }
+
+    function saveRecords() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state.records));
+    }
+
+    function demoData() {
+      const causes = ["Mantenimiento", "Daño de equipo", "Cambio de referencia", "Falta de material", "Operación", "Calidad"];
+      const equipment = ["Línea 1", "Línea 2", "Molino", "Empaque", "Caldera", "Mezclador"];
+      const rows = [];
+      for (let y = 2023; y <= 2026; y++) {
+        const maxMonth = y === 2026 ? 5 : 11;
+        for (let m = 0; m <= maxMonth; m++) {
+          for (let d = 1; d <= 28; d += 3) {
+            const date = new Date(Date.UTC(y, m, d));
+            const seasonal = Math.sin((m + 1) / 12 * Math.PI * 2);
+            const orders = Math.round(15 + (m % 4) * 3 + (d % 5) + (y - 2023) * 1.2);
+            const stopHours = Math.max(0.4, 1.2 + (d % 6) * 0.55 + (m % 3) * 0.6 + (orders > 24 ? 1.1 : 0));
+            const opHours = 16 + (d % 4) * 1.2;
+            const baseProd = 12.8 + seasonal * 0.8 - stopHours * 0.38 - orders * 0.035;
+            const tons = Math.max(20, baseProd * opHours + (d % 7) * 2.7);
+            rows.push({
+              date: date.toISOString().slice(0, 10),
+              orders,
+              tons: Number(tons.toFixed(2)),
+              opHours: Number(opHours.toFixed(1)),
+              stopHours: Number(stopHours.toFixed(1)),
+              cause: causes[(d + m + y) % causes.length],
+              equipment: equipment[(d * 2 + m) % equipment.length]
+            });
+          }
+        }
+      }
+      return rows;
+    }
+
+    function setupFilters() {
+      $("filterYear").innerHTML = "";
+      for (let y = 2023; y <= 2035; y++) $("filterYear").append(new Option(String(y), String(y)));
+      $("filterMonth").innerHTML = "";
+      months.forEach((m, i) => $("filterMonth").append(new Option(m, String(i))));
+      $("filterYear").value = state.filterYear;
+      $("filterMonth").value = state.filterMonth;
+      $("filterQuarter").value = state.filterQuarter;
+      document.querySelectorAll("[data-view]").forEach(btn => {
+        btn.addEventListener("click", () => {
+          state.view = btn.dataset.view;
+          document.querySelectorAll("[data-view]").forEach(b => b.classList.toggle("active", b === btn));
+          $("monthLabel").hidden = state.view !== "month";
+          $("quarterLabel").hidden = state.view !== "quarter";
+          renderAll();
+        });
+      });
+      ["filterYear", "filterMonth", "filterQuarter"].forEach(id => $(id).addEventListener("change", () => {
+        state.filterYear = Number($("filterYear").value);
+        state.filterMonth = Number($("filterMonth").value);
+        state.filterQuarter = Number($("filterQuarter").value);
+        renderAll();
+      }));
+      document.querySelectorAll("[data-screen]").forEach(btn => {
+        btn.addEventListener("click", () => setScreen(btn.dataset.screen));
+      });
+      $("applyFilters").addEventListener("click", renderAll);
+    }
+
+    function setScreen(screen) {
+      state.screen = screen;
+      document.querySelectorAll("[data-screen]").forEach(btn => {
+        btn.classList.toggle("active", btn.dataset.screen === screen);
+      });
+      document.querySelectorAll(".data-panel").forEach(panel => panel.classList.toggle("hidden", screen !== "data"));
+      document.querySelectorAll(".dashboard-panel").forEach(panel => panel.classList.toggle("hidden", screen !== "dashboard"));
+      setTimeout(renderAll, 0);
+    }
+
+    function renderCalendar() {
+      $("calendarTitle").textContent = `${months[state.calendarMonth]} ${state.calendarYear}`;
+      const first = new Date(state.calendarYear, state.calendarMonth, 1);
+      const startOffset = (first.getDay() + 6) % 7;
+      const start = new Date(state.calendarYear, state.calendarMonth, 1 - startOffset);
+      const dataDates = new Set(state.records.map(r => r.date));
+      $("calendarDays").innerHTML = "";
+      for (let i = 0; i < 42; i++) {
+        const date = new Date(start);
+        date.setDate(start.getDate() + i);
+        const iso = localIso(date);
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "day";
+        if (date.getMonth() !== state.calendarMonth) btn.classList.add("muted");
+        if (dataDates.has(iso)) btn.classList.add("has-data");
+        if (iso === state.selectedDate) btn.classList.add("selected");
+        btn.textContent = date.getDate();
+        btn.addEventListener("click", () => selectDate(iso));
+        $("calendarDays").append(btn);
+      }
+    }
+
+    function localIso(date) {
+      const y = date.getFullYear();
+      const m = String(date.getMonth() + 1).padStart(2, "0");
+      const d = String(date.getDate()).padStart(2, "0");
+      return `${y}-${m}-${d}`;
+    }
+
+    function selectDate(iso) {
+      state.selectedDate = iso;
+      const dt = new Date(iso + "T00:00:00");
+      state.calendarYear = dt.getFullYear();
+      state.calendarMonth = dt.getMonth();
+      const existing = state.records.find(r => r.date === iso);
+      $("date").value = iso;
+      $("orders").value = existing?.orders ?? "";
+      $("tons").value = existing?.tons ?? "";
+      $("opHours").value = existing?.opHours ?? "";
+      $("stopHours").value = existing?.stopHours ?? "";
+      $("cause").value = existing?.cause ?? "Mantenimiento";
+      $("equipment").value = existing?.equipment ?? "";
+      $("notes").value = existing?.notes ?? "";
+      $("selectedDateLabel").textContent = existing ? new Date(iso + "T00:00:00").toLocaleDateString("es-CO", { weekday: "long", year: "numeric", month: "long", day: "numeric" }) : `${iso} · sin registro`;
+      $("dayOp").textContent = existing ? fmt.format(Number(existing.orders)) : "0";
+      $("dayTons").textContent = existing ? fmt.format(Number(existing.tons)) : "0";
+      $("dayHours").textContent = existing ? fmt.format(Number(existing.opHours)) : "0";
+      $("dayStops").textContent = existing ? fmt.format(Number(existing.stopHours)) : "0";
+      renderCalendar();
+    }
+
+    function filteredRecords() {
+      return state.records
+        .filter(r => {
+          const d = new Date(r.date + "T00:00:00");
+          if (d.getFullYear() !== state.filterYear) return false;
+          if (state.view === "month") return d.getMonth() === state.filterMonth;
+          if (state.view === "quarter") return Math.floor(d.getMonth() / 3) + 1 === state.filterQuarter;
+          return true;
+        })
+        .sort((a, b) => a.date.localeCompare(b.date));
+    }
+
+    function average(values) {
+      const clean = values.filter(Number.isFinite);
+      return clean.length ? clean.reduce((a, b) => a + b, 0) / clean.length : 0;
+    }
+
+    function sumBy(rows, key) {
+      const map = new Map();
+      rows.forEach(r => map.set(r[key], (map.get(r[key]) || 0) + Number(r.stopHours)));
+      return [...map.entries()].sort((a, b) => b[1] - a[1]);
+    }
+
+    function correlation(xs, ys) {
+      if (xs.length < 2 || ys.length < 2) return 0;
+      const xAvg = average(xs), yAvg = average(ys);
+      let num = 0, xDen = 0, yDen = 0;
+      xs.forEach((x, i) => {
+        const xd = x - xAvg, yd = ys[i] - yAvg;
+        num += xd * yd;
+        xDen += xd * xd;
+        yDen += yd * yd;
+      });
+      const den = Math.sqrt(xDen * yDen);
+      return den ? num / den : 0;
+    }
+
+    function regression(rows) {
+      if (rows.length < 3) return null;
+      const n = rows.length;
+      const x1 = rows.map(r => Number(r.orders));
+      const x2 = rows.map(r => Number(r.stopHours));
+      const y = rows.map(productivity);
+      const sx1 = x1.reduce((a, b) => a + b, 0);
+      const sx2 = x2.reduce((a, b) => a + b, 0);
+      const sy = y.reduce((a, b) => a + b, 0);
+      const sx1x1 = x1.reduce((a, b) => a + b * b, 0);
+      const sx2x2 = x2.reduce((a, b) => a + b * b, 0);
+      const sx1x2 = x1.reduce((a, b, i) => a + b * x2[i], 0);
+      const sx1y = x1.reduce((a, b, i) => a + b * y[i], 0);
+      const sx2y = x2.reduce((a, b, i) => a + b * y[i], 0);
+      return solve3([
+        [n, sx1, sx2, sy],
+        [sx1, sx1x1, sx1x2, sx1y],
+        [sx2, sx1x2, sx2x2, sx2y]
+      ]);
+    }
+
+    function solve3(m) {
+      for (let col = 0; col < 3; col++) {
+        let pivot = col;
+        for (let row = col + 1; row < 3; row++) {
+          if (Math.abs(m[row][col]) > Math.abs(m[pivot][col])) pivot = row;
+        }
+        if (Math.abs(m[pivot][col]) < 1e-9) return null;
+        [m[col], m[pivot]] = [m[pivot], m[col]];
+        const div = m[col][col];
+        for (let j = col; j < 4; j++) m[col][j] /= div;
+        for (let row = 0; row < 3; row++) {
+          if (row === col) continue;
+          const factor = m[row][col];
+          for (let j = col; j < 4; j++) m[row][j] -= factor * m[col][j];
+        }
+      }
+      return { b0: m[0][3], bOp: m[1][3], bStop: m[2][3] };
+    }
+
+    function renderAll() {
+      const rows = filteredRecords();
+      const prod = rows.map(productivity);
+      const stops = rows.map(r => Number(r.stopHours));
+      const orders = rows.map(r => Number(r.orders));
+      const stopRates = rows.map(stopRate);
+      const causes = sumBy(rows, "cause");
+      const top = causes[0];
+      const reg = regression(rows);
+
+      $("periodLabel").textContent = periodText();
+      $("recordCount").textContent = `${rows.length} registros`;
+      $("kpiProd").textContent = fmt.format(average(prod));
+      $("kpiStop").textContent = pct.format(average(stopRates));
+      $("kpiTopCause").textContent = top ? top[0] : "-";
+      $("kpiTopCauseSub").textContent = top ? `${fmt.format(top[1])} horas acumuladas` : "Sin datos";
+      $("kpiStopImpact").textContent = reg ? fmt.format(reg.bStop) : "0.00";
+      $("kpiModel").textContent = reg ? `${fmt.format(reg.bOp)} · ${fmt.format(reg.bStop)}` : "-";
+      $("quickProd").textContent = fmt.format(average(prod));
+      $("quickStop").textContent = pct.format(average(stopRates));
+      $("quickCause").textContent = top ? top[0] : "-";
+      $("quickImpact").textContent = reg ? fmt.format(reg.bStop) : "0.00";
+
+      renderRecords(rows);
+      renderStats(rows, orders, stops, prod, reg);
+      renderScatter(rows);
+      renderCauseBars(rows);
+      renderTime(rows);
+      renderRanking(rows);
+      renderReport(rows, reg);
+      renderCalendar();
+    }
+
+    function periodText() {
+      if (state.view === "month") return `${months[state.filterMonth]} ${state.filterYear}`;
+      if (state.view === "quarter") return `Trimestre Q${state.filterQuarter} de ${state.filterYear}`;
+      return `Año completo ${state.filterYear}`;
+    }
+
+    function renderRecords(rows) {
+      const term = ($("recordSearch")?.value || "").trim().toLowerCase();
+      const visibleRows = term ? rows.filter(r => [r.date, r.orders, r.tons, r.cause, r.equipment].join(" ").toLowerCase().includes(term)) : rows;
+      $("recordsRange").textContent = `Mostrando ${visibleRows.length ? `1 a ${visibleRows.length}` : "0"} de ${rows.length} registros`;
+      $("recordsBody").innerHTML = visibleRows.length ? visibleRows.map(r => `
+        <tr class="record-row" data-date="${r.date}">
+          <td>${r.date}</td>
+          <td>${r.orders}</td>
+          <td>${fmt.format(Number(r.tons))}</td>
+          <td>${fmt.format(productivity(r))}</td>
+          <td>${pct.format(stopRate(r))}</td>
+          <td>${r.cause}</td>
+          <td>${r.equipment}</td>
+        </tr>
+      `).join("") : `<tr><td colspan="7" class="empty">No hay datos para este periodo.</td></tr>`;
+      document.querySelectorAll(".record-row").forEach(row => {
+        row.addEventListener("click", () => {
+          selectDate(row.dataset.date);
+          setScreen("data");
+        });
+      });
+    }
+
+    function renderStats(rows, orders, stops, prod, reg) {
+      const cOp = correlation(orders, prod);
+      const cStop = correlation(stops, prod);
+      $("corrOp").textContent = fmt.format(cOp);
+      $("corrStop").textContent = fmt.format(cStop);
+      $("corrOpText").textContent = interpretCorr(cOp, "OP", "productividad");
+      $("corrStopText").textContent = interpretCorr(cStop, "horas de parada", "productividad");
+      if (reg) {
+        $("regression").textContent = `βOP ${fmt.format(reg.bOp)} · βParada ${fmt.format(reg.bStop)}`;
+        $("regressionText").textContent = `Por cada OP adicional, la productividad cambia ${fmt.format(reg.bOp)} ton/h manteniendo paradas constantes. Por cada hora de parada adicional, cambia ${fmt.format(reg.bStop)} ton/h manteniendo OP constantes.`;
+      } else {
+        $("regression").textContent = "-";
+        $("regressionText").textContent = "Se necesitan al menos 3 registros con variación suficiente.";
+      }
+    }
+
+    function interpretCorr(value, a, b) {
+      const abs = Math.abs(value);
+      const dir = value < -0.08 ? "inversa" : value > 0.08 ? "directa" : "débil o neutra";
+      const mag = abs >= .7 ? "fuerte" : abs >= .4 ? "moderada" : abs >= .15 ? "leve" : "muy baja";
+      return `Relación ${dir} ${mag} entre ${a} y ${b}.`;
+    }
+
+    function renderRanking(rows) {
+      const equipment = sumBy(rows, "equipment");
+      const cause = sumBy(rows, "cause");
+      const total = rows.reduce((a, r) => a + Number(r.stopHours), 0);
+      const maintenance = rows.filter(r => r.cause === "Mantenimiento").reduce((a, r) => a + Number(r.stopHours), 0);
+      const operation = rows.filter(r => ["Operación", "Cambio de referencia", "Falta de material"].includes(r.cause)).reduce((a, r) => a + Number(r.stopHours), 0);
+      const rowsHtml = [
+        ...equipment.slice(0, 5).map(([name, hours]) => [name, hours, "Equipo crítico"]),
+        ["Mantenimiento", maintenance, "Tipo de parada"],
+        ["Operación + referencia + material", operation, "Tipo de parada"],
+        ...cause.slice(0, 3).map(([name, hours]) => [name, hours, "Causa principal"])
+      ].map(([name, hours, type]) => `
+        <tr><td><strong>${name}</strong><br><span class="chip">${type}</span></td><td>${fmt.format(hours)}</td><td>${total ? pct.format(hours / total) : "0%"}</td></tr>
+      `).join("");
+      $("rankingBody").innerHTML = rowsHtml || `<tr><td colspan="3" class="empty">No hay horas de parada para clasificar.</td></tr>`;
+    }
+
+    function chartFrame(svg, xLabel, yLabel) {
+      svg.innerHTML = "";
+      const w = svg.clientWidth || 640, h = svg.clientHeight || 300;
+      const pad = { l: 48, r: 18, t: 18, b: 42 };
+      const g = make("g");
+      svg.setAttribute("viewBox", `0 0 ${w} ${h}`);
+      const bg = make("rect", { x: 0, y: 0, width: w, height: h, rx: 12, fill: "#fbfdfe" });
+      svg.append(bg);
+      for (let i = 1; i <= 4; i++) {
+        const y = pad.t + (h - pad.t - pad.b) * i / 5;
+        const grid = make("line", { x1: pad.l, y1: y, x2: w - pad.r, y2: y, stroke: "#e8eef1", "stroke-width": "1" });
+        g.append(grid);
+      }
+      [["line", {x1: pad.l, y1: h - pad.b, x2: w - pad.r, y2: h - pad.b}], ["line", {x1: pad.l, y1: pad.t, x2: pad.l, y2: h - pad.b}]].forEach(([tag, attrs]) => {
+        const el = make(tag, attrs); el.setAttribute("stroke", "#aebdc1"); el.setAttribute("stroke-width", "1"); g.append(el);
+      });
+      const xl = make("text", { x: w / 2, y: h - 8, "text-anchor": "middle" }); xl.textContent = xLabel; xl.setAttribute("fill", "#66777c"); xl.setAttribute("font-size", "12"); g.append(xl);
+      const yl = make("text", { x: 14, y: h / 2, transform: `rotate(-90 14 ${h / 2})`, "text-anchor": "middle" }); yl.textContent = yLabel; yl.setAttribute("fill", "#66777c"); yl.setAttribute("font-size", "12"); g.append(yl);
+      svg.append(g);
+      return { w, h, pad };
+    }
+
+    function make(tag, attrs = {}) {
+      const el = document.createElementNS("http://www.w3.org/2000/svg", tag);
+      Object.entries(attrs).forEach(([k, v]) => el.setAttribute(k, v));
+      return el;
+    }
+
+    function scale(value, min, max, outMin, outMax) {
+      if (max === min) return (outMin + outMax) / 2;
+      return outMin + (value - min) / (max - min) * (outMax - outMin);
+    }
+
+    function noChart(svg, message) {
+      svg.innerHTML = "";
+      svg.setAttribute("viewBox", "0 0 640 300");
+      const text = make("text", { x: 320, y: 150, "text-anchor": "middle", fill: "#66777c", "font-size": "15" });
+      text.textContent = message;
+      svg.append(text);
+    }
+
+    function showTip(event, html) {
+      const tip = $("chartTooltip");
+      tip.innerHTML = html;
+      tip.style.left = `${event.clientX}px`;
+      tip.style.top = `${event.clientY}px`;
+      tip.classList.add("visible");
+    }
+
+    function hideTip() {
+      $("chartTooltip").classList.remove("visible");
+    }
+
+    function scatterNarrative(r) {
+      const prod = productivity(r);
+      const stop = stopRate(r);
+      return `<strong>${r.date}</strong>: ${r.orders} OP, ${fmt.format(Number(r.tons))} toneladas, ${fmt.format(prod)} ton/h efectiva y ${pct.format(stop)} de parada. Causa principal: <strong>${r.cause}</strong>. Equipo/área: <strong>${r.equipment}</strong>.`;
+    }
+
+    function renderScatter(rows) {
+      const svg = $("scatterChart");
+      if (!rows.length) {
+        $("scatterDetail").textContent = "Sin datos para graficar en este periodo.";
+        return noChart(svg, "Sin datos para graficar");
+      }
+      const { w, h, pad } = chartFrame(svg, "Órdenes de producción", "Ton/h efectiva");
+      const xs = rows.map(r => Number(r.orders));
+      const ys = rows.map(productivity);
+      const xMin = Math.min(...xs) - 1, xMax = Math.max(...xs) + 1;
+      const yMin = Math.min(...ys) * .94, yMax = Math.max(...ys) * 1.06;
+      rows.forEach(r => {
+        const cx = scale(Number(r.orders), xMin, xMax, pad.l, w - pad.r);
+        const cy = scale(productivity(r), yMin, yMax, h - pad.b, pad.t);
+        const c = make("circle", { cx, cy, r: 6, fill: "#009688", opacity: ".9", stroke: "#ffffff", "stroke-width": "2", style: "cursor:pointer" });
+        c.addEventListener("mousemove", (event) => showTip(event, scatterNarrative(r)));
+        c.addEventListener("mouseleave", hideTip);
+        c.addEventListener("click", () => {
+          $("scatterDetail").innerHTML = scatterNarrative(r);
+          svg.querySelectorAll("circle").forEach(node => node.setAttribute("fill", "#009688"));
+          c.setAttribute("fill", "#115e59");
+        });
+        svg.append(c);
+      });
+      const cOp = correlation(xs, ys);
+      if (rows.length > 1 && Math.abs(cOp) > 0.01) {
+        const xAvg = average(xs);
+        const yAvg = average(ys);
+        const slope = xs.reduce((a, x, i) => a + (x - xAvg) * (ys[i] - yAvg), 0) / xs.reduce((a, x) => a + (x - xAvg) ** 2, 0);
+        const intercept = yAvg - slope * xAvg;
+        const y1 = intercept + slope * xMin;
+        const y2 = intercept + slope * xMax;
+        const line = make("line", {
+          x1: scale(xMin, xMin, xMax, pad.l, w - pad.r),
+          y1: scale(y1, yMin, yMax, h - pad.b, pad.t),
+          x2: scale(xMax, xMin, xMax, pad.l, w - pad.r),
+          y2: scale(y2, yMin, yMax, h - pad.b, pad.t),
+          stroke: "#5eead4",
+          "stroke-width": "2",
+          "stroke-dasharray": "6 5"
+        });
+        svg.insertBefore(line, svg.querySelector("circle"));
+      }
+    }
+
+    function renderCauseBars(rows) {
+      const svg = $("causeBarChart");
+      const data = sumBy(rows, "cause").slice(0, 8);
+      if (!data.length) return noChart(svg, "Sin causas registradas");
+      svg.innerHTML = "";
+      const w = svg.clientWidth || 640, h = svg.clientHeight || 300;
+      svg.setAttribute("viewBox", `0 0 ${w} ${h}`);
+      const max = Math.max(...data.map(d => d[1]));
+      const barH = Math.min(26, (h - 48) / data.length - 8);
+      data.forEach(([name, hours], i) => {
+        const y = 22 + i * ((h - 48) / data.length);
+        const width = scale(hours, 0, max, 0, w - 210);
+        const label = make("text", { x: 12, y: y + barH * .72, fill: "#314246", "font-size": "12" });
+        label.textContent = name;
+        const greens = ["#00796b", "#009688", "#26a69a", "#80cbc4", "#b2dfdb"];
+        const rect = make("rect", { x: 160, y, width, height: barH, rx: 4, fill: greens[i % greens.length] });
+        rect.setAttribute("style", "cursor:pointer");
+        rect.addEventListener("mousemove", (event) => showTip(event, `<strong>${name}</strong><br>${fmt.format(hours)} horas detenidas acumuladas en el periodo.`));
+        rect.addEventListener("mouseleave", hideTip);
+        const val = make("text", { x: 170 + width, y: y + barH * .72, fill: "#314246", "font-size": "12" });
+        val.textContent = `${fmt.format(hours)} h`;
+        svg.append(label, rect, val);
+      });
+    }
+
+    function renderTime(rows) {
+      const svg = $("timeChart");
+      if (!rows.length) return noChart(svg, "Sin datos temporales");
+      const { w, h, pad } = chartFrame(svg, "Fecha", "Prod. / Paradas acum.");
+      const sorted = [...rows].sort((a, b) => a.date.localeCompare(b.date));
+      let acc = 0;
+      const points = sorted.map((r, i) => ({ i, date: r.date, prod: productivity(r), stop: acc += Number(r.stopHours) }));
+      const prodMin = Math.min(...points.map(p => p.prod)) * .94, prodMax = Math.max(...points.map(p => p.prod)) * 1.06;
+      const stopMax = Math.max(...points.map(p => p.stop)) || 1;
+      const line = (key, color, min, max) => {
+        const d = points.map(p => {
+          const x = scale(p.i, 0, Math.max(1, points.length - 1), pad.l, w - pad.r);
+          const y = scale(p[key], min, max, h - pad.b, pad.t);
+          return `${x},${y}`;
+        }).join(" ");
+        svg.append(make("polyline", { points: d, fill: "none", stroke: color, "stroke-width": 3, "stroke-linejoin": "round" }));
+      };
+      line("prod", "#00796b", prodMin, prodMax);
+      line("stop", "#4db6ac", 0, stopMax);
+      points.forEach(p => {
+        const x = scale(p.i, 0, Math.max(1, points.length - 1), pad.l, w - pad.r);
+        const y = scale(p.prod, prodMin, prodMax, h - pad.b, pad.t);
+        const dot = make("circle", { cx: x, cy: y, r: 4, fill: "#00796b", stroke: "#fff", "stroke-width": "2", style: "cursor:pointer" });
+        dot.addEventListener("mousemove", (event) => showTip(event, `<strong>${p.date}</strong><br>Productividad: ${fmt.format(p.prod)} ton/h<br>Paradas acumuladas: ${fmt.format(p.stop)} h`));
+        dot.addEventListener("mouseleave", hideTip);
+        svg.append(dot);
+      });
+      const legend = make("text", { x: pad.l, y: pad.t + 12, fill: "#314246", "font-size": "12" });
+      legend.textContent = "Verde oscuro: productividad · Verde claro: horas de parada acumuladas";
+      svg.append(legend);
+    }
+
+    function renderReport(rows, reg) {
+      if (!rows.length) {
+        $("report").innerHTML = "No hay datos para generar el reporte del periodo seleccionado.";
+        return;
+      }
+      const prod = rows.map(productivity);
+      const cOp = correlation(rows.map(r => Number(r.orders)), prod);
+      const cStop = correlation(rows.map(r => Number(r.stopHours)), prod);
+      const causes = sumBy(rows, "cause");
+      const equip = sumBy(rows, "equipment");
+      const totalStop = rows.reduce((a, r) => a + Number(r.stopHours), 0);
+      const opText = cOp < -0.15 ? "sí muestra una presión negativa sobre la productividad" : cOp > 0.15 ? "se asocia con mayor productividad en este periodo" : "no evidencia un efecto claro sobre productividad";
+      const stopText = cStop < -0.15 ? "las paradas deterioran la productividad de forma visible" : "el efecto de las paradas no domina la variación observada";
+      const regText = reg
+        ? `La regresión estima βOP=${fmt.format(reg.bOp)} y βParada=${fmt.format(reg.bStop)}; en valor absoluto, ${Math.abs(reg.bStop) > Math.abs(reg.bOp) ? "las horas de parada pesan más que las OP" : "las OP pesan más que las horas de parada"} sobre la productividad.`
+        : "La regresión requiere más datos o mayor variación para ser estable.";
+      $("report").innerHTML = `
+        <strong>${periodText()}:</strong> productividad promedio de <strong>${fmt.format(average(prod))} ton/h</strong>, con <strong>${fmt.format(totalStop)} horas</strong> detenidas acumuladas.
+        La lectura estadística indica que el volumen de OP ${opText}. En paralelo, ${stopText}.
+        ${regText}
+        La causa de mayor peso es <strong>${causes[0]?.[0] || "-"}</strong> (${causes[0] ? fmt.format(causes[0][1]) : "0"} h) y el equipo/área más crítico es <strong>${equip[0]?.[0] || "-"}</strong>.
+      `;
+    }
+
+    function normalizeKey(value) {
+      return String(value || "")
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/[^a-z0-9]/g, "");
+    }
+
+    function parseNumber(value) {
+      if (typeof value === "number") return value;
+      const cleaned = String(value || "").replace(/\s/g, "").replace(",", ".");
+      const parsed = Number(cleaned);
+      return Number.isFinite(parsed) ? parsed : 0;
+    }
+
+    function parseDateValue(value) {
+      if (value instanceof Date && !Number.isNaN(value.getTime())) return localIso(value);
+      if (typeof value === "number") {
+        const excelEpoch = new Date(Date.UTC(1899, 11, 30));
+        excelEpoch.setUTCDate(excelEpoch.getUTCDate() + Math.round(value));
+        return excelEpoch.toISOString().slice(0, 10);
+      }
+      const raw = String(value || "").trim();
+      if (!raw) return "";
+      const iso = raw.match(/^(\d{4})[-/](\d{1,2})[-/](\d{1,2})$/);
+      if (iso) return `${iso[1]}-${iso[2].padStart(2, "0")}-${iso[3].padStart(2, "0")}`;
+      const latam = raw.match(/^(\d{1,2})[-/](\d{1,2})[-/](\d{2,4})$/);
+      if (latam) {
+        const year = latam[3].length === 2 ? `20${latam[3]}` : latam[3];
+        return `${year}-${latam[2].padStart(2, "0")}-${latam[1].padStart(2, "0")}`;
+      }
+      const parsed = new Date(raw);
+      return Number.isNaN(parsed.getTime()) ? "" : localIso(parsed);
+    }
+
+    function mapImportedRows(rows) {
+      return rows.map(row => {
+        const normalized = {};
+        Object.entries(row).forEach(([key, value]) => normalized[normalizeKey(key)] = value);
+        const get = (...names) => {
+          for (const name of names) {
+            const key = normalizeKey(name);
+            if (key in normalized) return normalized[key];
+          }
+          return "";
+        };
+        return {
+          date: parseDateValue(get("fecha", "date", "dia")),
+          orders: Math.round(parseNumber(get("op", "ordenes", "ordenesproduccion", "numeroop", "numeroordenesdeproduccion"))),
+          tons: parseNumber(get("toneladas", "ton", "tonproducidas", "toneladasproducidas")),
+          opHours: parseNumber(get("horasoperacion", "horasoperacionefectivas", "horasefectivas", "horasdeoperacion")),
+          stopHours: parseNumber(get("horasparada", "horasdetenidas", "horasdeparada", "parada")),
+          cause: String(get("causa", "causaprincipal", "causaprincipalparada") || "Sin clasificar").trim(),
+          equipment: String(get("equipo", "area", "equipoarea", "equipoafectado") || "Sin equipo").trim()
+        };
+      }).filter(r => r.date && r.date >= "2023-01-01");
+    }
+
+    function mergeRecords(imported) {
+      const byDate = new Map(state.records.map(r => [r.date, r]));
+      imported.forEach(r => byDate.set(r.date, r));
+      state.records = [...byDate.values()].sort((a, b) => a.date.localeCompare(b.date));
+      saveRecords();
+      if (imported[0]) {
+        syncFilterToDate(imported[0].date);
+        selectDate(imported[0].date);
+      }
+      $("importStatus").textContent = `${imported.length} filas cargadas. Puedes editarlas desde el calendario.`;
+      renderAll();
+    }
+
+    function loadSheetJs() {
+      return new Promise((resolve, reject) => {
+        if (window.XLSX) return resolve(window.XLSX);
+        const script = document.createElement("script");
+        script.src = "https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js";
+        script.onload = () => resolve(window.XLSX);
+        script.onerror = () => reject(new Error("No se pudo cargar el lector de Excel. Guarda el archivo como CSV o revisa la conexión."));
+        document.head.append(script);
+      });
+    }
+
+    async function importFile() {
+      const file = $("fileUpload").files[0];
+      if (!file) {
+        $("importStatus").textContent = "Selecciona un archivo primero.";
+        return;
+      }
+      $("importStatus").textContent = "Leyendo archivo...";
+      try {
+        const ext = file.name.split(".").pop().toLowerCase();
+        if (ext === "csv" || ext === "txt") {
+          const text = await file.text();
+          const delimiter = text.includes(";") ? ";" : ",";
+          const lines = text.split(/\r?\n/).filter(line => line.trim());
+          const headers = lines.shift().split(delimiter).map(h => h.trim());
+          const rows = lines.map(line => {
+            const cells = line.split(delimiter).map(c => c.trim());
+            return Object.fromEntries(headers.map((h, i) => [h, cells[i] ?? ""]));
+          });
+          mergeRecords(mapImportedRows(rows));
+          return;
+        }
+        const XLSX = await loadSheetJs();
+        const buffer = await file.arrayBuffer();
+        const workbook = XLSX.read(buffer, { type: "array", cellDates: true });
+        const sheet = workbook.Sheets[workbook.SheetNames[0]];
+        const rows = XLSX.utils.sheet_to_json(sheet, { defval: "" });
+        mergeRecords(mapImportedRows(rows));
+      } catch (error) {
+        $("importStatus").textContent = error.message;
+      }
+    }
+
+    function bindForm() {
+      $("entryForm").addEventListener("submit", (ev) => {
+        ev.preventDefault();
+        const rec = {
+          date: $("date").value,
+          orders: Number($("orders").value),
+          tons: Number($("tons").value),
+          opHours: Number($("opHours").value),
+          stopHours: Number($("stopHours").value),
+          cause: $("cause").value,
+          equipment: $("equipment").value.trim(),
+          notes: $("notes").value.trim()
+        };
+        const existing = state.records.findIndex(r => r.date === rec.date);
+        if (existing >= 0) state.records[existing] = rec;
+        else state.records.push(rec);
+        saveRecords();
+        syncFilterToDate(rec.date);
+        renderAll();
+      });
+      $("deleteDay").addEventListener("click", () => {
+        const date = $("date").value;
+        state.records = state.records.filter(r => r.date !== date);
+        saveRecords();
+        selectDate(date);
+        renderAll();
+      });
+      $("prevMonth").addEventListener("click", () => {
+        state.calendarMonth--;
+        if (state.calendarMonth < 0) { state.calendarMonth = 11; state.calendarYear--; }
+        renderCalendar();
+      });
+      $("nextMonth").addEventListener("click", () => {
+        state.calendarMonth++;
+        if (state.calendarMonth > 11) { state.calendarMonth = 0; state.calendarYear++; }
+        renderCalendar();
+      });
+      $("loadDemo").addEventListener("click", () => {
+        state.records = demoData();
+        saveRecords();
+        renderAll();
+      });
+      $("clearData").addEventListener("click", () => {
+        if (!confirm("¿Borrar todos los datos guardados localmente?")) return;
+        state.records = [];
+        saveRecords();
+        renderAll();
+      });
+      $("exportCsv").addEventListener("click", exportCsv);
+      $("importFile").addEventListener("click", importFile);
+      $("recordSearch").addEventListener("input", renderAll);
+      $("quickExport").addEventListener("click", exportCsv);
+      $("quickClearFilters").addEventListener("click", () => {
+        $("recordSearch").value = "";
+        state.view = "year";
+        document.querySelectorAll("[data-view]").forEach(b => b.classList.toggle("active", b.dataset.view === "year"));
+        $("monthLabel").hidden = true;
+        $("quarterLabel").hidden = true;
+        renderAll();
+      });
+    }
+
+    function syncFilterToDate(iso) {
+      const d = new Date(iso + "T00:00:00");
+      state.filterYear = d.getFullYear();
+      state.filterMonth = d.getMonth();
+      state.filterQuarter = Math.floor(d.getMonth() / 3) + 1;
+      state.calendarYear = d.getFullYear();
+      state.calendarMonth = d.getMonth();
+      $("filterYear").value = state.filterYear;
+      $("filterMonth").value = state.filterMonth;
+      $("filterQuarter").value = state.filterQuarter;
+    }
+
+    function exportCsv() {
+      const headers = ["Fecha", "OP", "Toneladas", "Horas operacion", "Horas parada", "Causa", "Equipo", "Productividad", "Porcentaje parada"];
+      const rows = filteredRecords().map(r => [r.date, r.orders, r.tons, r.opHours, r.stopHours, r.cause, r.equipment, productivity(r).toFixed(4), stopRate(r).toFixed(4)]);
+      const csv = [headers, ...rows].map(row => row.map(v => `"${String(v).replaceAll('"', '""')}"`).join(",")).join("\n");
+      const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `reporte_productividad_${periodText().replaceAll(" ", "_")}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    window.addEventListener("resize", renderAll);
+
+    loadRecords();
+    setupFilters();
+    bindForm();
+    selectDate(state.selectedDate);
+    setScreen("data");
+    renderAll();
+  </script>
+</body>
+</html>
