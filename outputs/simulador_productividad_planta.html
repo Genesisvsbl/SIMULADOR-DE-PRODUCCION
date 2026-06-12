@@ -662,10 +662,12 @@
       justify-content: space-between;
       gap: 14px;
       border-bottom: 1px solid var(--line);
+      flex-wrap: wrap;
     }
 
     .mini-select,
-    .search-box {
+    .search-box,
+    .date-filter {
       border: 1px solid var(--line);
       background: #fff;
       border-radius: 10px;
@@ -677,6 +679,28 @@
       color: var(--muted);
       font-weight: 800;
       font-size: 13px;
+    }
+
+    .date-filter {
+      min-width: 170px;
+      padding: 0 10px;
+    }
+
+    .date-filter span {
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 1000;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+    }
+
+    .date-filter input {
+      border: 0;
+      box-shadow: none;
+      min-height: 34px;
+      padding: 0;
+      min-width: 120px;
+      background: transparent;
     }
 
     .search-box input {
@@ -934,15 +958,35 @@
     .compare-body {
       padding: 16px 18px 18px;
       display: grid;
-      grid-template-columns: minmax(260px, .9fr) minmax(260px, .9fr) repeat(4, minmax(150px, 1fr));
+      grid-template-columns: minmax(150px, .55fr) minmax(240px, .85fr) minmax(240px, .85fr) repeat(4, minmax(140px, 1fr));
       gap: 14px;
       align-items: end;
+    }
+
+    .compare-chart-wrap {
+      padding: 0 18px 18px;
+    }
+
+    .compare-chart-wrap svg {
+      height: 320px;
+      border: 1px solid #d9efeb;
+      border-radius: 14px;
+      background: #fbfefd;
     }
 
     .compare-picker {
       display: grid;
       grid-template-columns: 1fr 92px;
       gap: 8px;
+    }
+
+    .compare-picker.year-only {
+      grid-template-columns: 1fr;
+    }
+
+    .compare-day-field[hidden],
+    .compare-period-field[hidden] {
+      display: none;
     }
 
     .compare-metric {
@@ -1289,6 +1333,12 @@
           </div>
           <div class="records-toolbar">
             <button class="mini-select" type="button">Filtros⌄</button>
+            <label class="date-filter"><span>Desde</span>
+              <input type="date" id="recordDateFrom">
+            </label>
+            <label class="date-filter"><span>Hasta</span>
+              <input type="date" id="recordDateTo">
+            </label>
             <label class="search-box" aria-label="Buscar registros">⌕
               <input id="recordSearch" placeholder="Buscar...">
             </label>
@@ -1331,25 +1381,41 @@
       <section class="compare-panel view-panel dashboard-panel hidden">
         <div class="panel-header">
           <h3><span class="soft-icon">⇄</span>Comparar periodos</h3>
-          <small>Compara un mes contra otro mes</small>
+          <small>Compara anos, meses o dias</small>
         </div>
         <div class="compare-body">
-          <label>Periodo A
+          <label>Nivel
+            <select id="compareLevel">
+              <option value="year">Anos</option>
+              <option value="month">Meses</option>
+              <option value="day">Dias</option>
+            </select>
+          </label>
+          <label class="compare-period-field">Periodo A
             <div class="compare-picker">
-              <select id="compareMonthA"></select>
+              <select id="compareMonthA" class="compare-month-select"></select>
               <select id="compareYearA"></select>
             </div>
           </label>
-          <label>Periodo B
+          <label class="compare-period-field">Periodo B
             <div class="compare-picker">
-              <select id="compareMonthB"></select>
+              <select id="compareMonthB" class="compare-month-select"></select>
               <select id="compareYearB"></select>
             </div>
+          </label>
+          <label class="compare-day-field" hidden>Dia A
+            <input type="date" id="compareDayA">
+          </label>
+          <label class="compare-day-field" hidden>Dia B
+            <input type="date" id="compareDayB">
           </label>
           <div class="compare-metric"><span>Productividad</span><strong id="cmpProd">0</strong><small id="cmpProdSub">Sin comparación</small></div>
           <div class="compare-metric"><span>% Parada</span><strong id="cmpStopRate">0</strong><small id="cmpStopRateSub">Sin comparación</small></div>
           <div class="compare-metric"><span>Horas parada</span><strong id="cmpStopHours">0</strong><small id="cmpStopHoursSub">Sin comparación</small></div>
-          <div class="compare-metric"><span>Top causa B</span><strong id="cmpTopCause">-</strong><small id="cmpTopCauseSub">Sin datos</small></div>
+          <div class="compare-metric"><span>OP total</span><strong id="cmpTopCause">-</strong><small id="cmpTopCauseSub">Sin datos</small></div>
+        </div>
+        <div class="compare-chart-wrap">
+          <svg id="compareChart" viewBox="0 0 1200 320" role="img" aria-label="Comparacion de productividad y OP"></svg>
         </div>
       </section>
 
@@ -1425,10 +1491,13 @@
       filterYear: 2026,
       filterMonth: 5,
       filterQuarter: 2,
+      compareLevel: "month",
       compareMonthA: 4,
       compareYearA: 2026,
       compareMonthB: 5,
       compareYearB: 2026,
+      compareDayA: "2026-05-01",
+      compareDayB: "2026-06-01",
       calendarYear: 2026,
       calendarMonth: 5,
       selectedDate: "2026-06-11"
@@ -1518,10 +1587,13 @@
       $("filterQuarter").value = state.filterQuarter;
       $("calendarMonthSelect").value = state.calendarMonth;
       $("calendarYearSelect").value = state.calendarYear;
+      $("compareLevel").value = state.compareLevel;
       $("compareMonthA").value = state.compareMonthA;
       $("compareYearA").value = state.compareYearA;
       $("compareMonthB").value = state.compareMonthB;
       $("compareYearB").value = state.compareYearB;
+      $("compareDayA").value = state.compareDayA;
+      $("compareDayB").value = state.compareDayB;
       document.querySelectorAll("[data-view]").forEach(btn => {
         btn.addEventListener("click", () => {
           state.view = btn.dataset.view;
@@ -1542,11 +1614,14 @@
         state.calendarYear = Number($("calendarYearSelect").value);
         selectDate(`${state.calendarYear}-${String(state.calendarMonth + 1).padStart(2, "0")}-01`);
       }));
-      ["compareMonthA", "compareYearA", "compareMonthB", "compareYearB"].forEach(id => $(id).addEventListener("change", () => {
+      ["compareLevel", "compareMonthA", "compareYearA", "compareMonthB", "compareYearB", "compareDayA", "compareDayB"].forEach(id => $(id).addEventListener("change", () => {
+        state.compareLevel = $("compareLevel").value;
         state.compareMonthA = Number($("compareMonthA").value);
         state.compareYearA = Number($("compareYearA").value);
         state.compareMonthB = Number($("compareMonthB").value);
         state.compareYearB = Number($("compareYearB").value);
+        state.compareDayA = $("compareDayA").value;
+        state.compareDayB = $("compareDayB").value;
         renderComparison();
       }));
       document.querySelectorAll("[data-screen]").forEach(btn => {
@@ -1638,16 +1713,51 @@
         .sort((a, b) => a.date.localeCompare(b.date));
     }
 
+    function yearRecords(year) {
+      return state.records
+        .filter(r => new Date(r.date + "T00:00:00").getFullYear() === year)
+        .sort((a, b) => a.date.localeCompare(b.date));
+    }
+
+    function dayRecords(date) {
+      return state.records
+        .filter(r => r.date === date)
+        .sort((a, b) => a.date.localeCompare(b.date));
+    }
+
+    function comparisonRows(side) {
+      if (state.compareLevel === "year") {
+        return yearRecords(side === "A" ? state.compareYearA : state.compareYearB);
+      }
+      if (state.compareLevel === "day") {
+        return dayRecords(side === "A" ? state.compareDayA : state.compareDayB);
+      }
+      return monthRecords(
+        side === "A" ? state.compareYearA : state.compareYearB,
+        side === "A" ? state.compareMonthA : state.compareMonthB
+      );
+    }
+
+    function comparisonLabel(side) {
+      if (state.compareLevel === "year") return String(side === "A" ? state.compareYearA : state.compareYearB);
+      if (state.compareLevel === "day") return side === "A" ? state.compareDayA : state.compareDayB;
+      const month = side === "A" ? state.compareMonthA : state.compareMonthB;
+      const year = side === "A" ? state.compareYearA : state.compareYearB;
+      return `${months[month]} ${year}`;
+    }
+
     function periodSummary(rows) {
       const prod = rows.map(productivity);
       const stopRates = rows.map(stopRate);
       const stopHours = rows.reduce((a, r) => a + Number(r.stopHours), 0);
+      const totalOrders = rows.reduce((a, r) => a + Number(r.orders || 0), 0);
       const causes = sumBy(rows, "cause");
       return {
         count: rows.length,
         productivity: average(prod),
         stopRate: average(stopRates),
         stopHours,
+        totalOrders,
         topCause: causes[0]?.[0] || "-",
         topCauseHours: causes[0]?.[1] || 0
       };
@@ -1815,7 +1925,7 @@
       $("execOpportunitySub").textContent = `Horas concentradas en ${topCause}. Ahí está la primera palanca de mejora.`;
     }
 
-    function renderComparison() {
+    function renderComparisonLegacy() {
       const a = periodSummary(monthRecords(state.compareYearA, state.compareMonthA));
       const b = periodSummary(monthRecords(state.compareYearB, state.compareMonthB));
       const labelA = `${months[state.compareMonthA]} ${state.compareYearA}`;
@@ -1834,6 +1944,140 @@
       $("cmpTopCauseSub").textContent = `${fmt.format(b.topCauseHours)} h en periodo B`;
     }
 
+    function renderComparison() {
+      syncComparisonControls();
+      const rowsA = comparisonRows("A");
+      const rowsB = comparisonRows("B");
+      const a = periodSummary(rowsA);
+      const b = periodSummary(rowsB);
+      const labelA = comparisonLabel("A");
+      const labelB = comparisonLabel("B");
+      const diffProd = b.productivity - a.productivity;
+      const diffStopRate = b.stopRate - a.stopRate;
+      const diffStopHours = b.stopHours - a.stopHours;
+      const diffOrders = b.totalOrders - a.totalOrders;
+      const sign = value => value > 0 ? "+" : "";
+      $("cmpProd").textContent = `${sign(diffProd)}${fmt.format(diffProd)}`;
+      $("cmpProdSub").textContent = `${labelB} vs ${labelA} · ${b.count} registros`;
+      $("cmpStopRate").textContent = `${sign(diffStopRate)}${pct.format(diffStopRate)}`;
+      $("cmpStopRateSub").textContent = "Cambio en % parada promedio";
+      $("cmpStopHours").textContent = `${sign(diffStopHours)}${fmt.format(diffStopHours)} h`;
+      $("cmpStopHoursSub").textContent = `${fmt.format(b.stopHours)} h en ${labelB}`;
+      $("cmpTopCause").textContent = `${sign(diffOrders)}${fmt.format(diffOrders)}`;
+      $("cmpTopCauseSub").textContent = `${fmt.format(b.totalOrders)} OP en ${labelB}`;
+      renderCompareChart(rowsA, rowsB, labelA, labelB);
+    }
+
+    function syncComparisonControls() {
+      const isDay = state.compareLevel === "day";
+      const isYear = state.compareLevel === "year";
+      document.querySelectorAll(".compare-period-field").forEach(el => { el.hidden = isDay; });
+      document.querySelectorAll(".compare-day-field").forEach(el => { el.hidden = !isDay; });
+      document.querySelectorAll(".compare-month-select").forEach(el => { el.hidden = isYear; });
+      document.querySelectorAll(".compare-picker").forEach(el => el.classList.toggle("year-only", isYear));
+    }
+
+    function compareBuckets(side) {
+      if (state.compareLevel === "year") {
+        return Array.from({ length: 12 }, (_, i) => ({ key: i, label: months[i].slice(0, 3) }));
+      }
+      if (state.compareLevel === "day") {
+        return [{ key: 0, label: comparisonLabel(side) }];
+      }
+      const year = side === "A" ? state.compareYearA : state.compareYearB;
+      const month = side === "A" ? state.compareMonthA : state.compareMonthB;
+      const days = new Date(year, month + 1, 0).getDate();
+      return Array.from({ length: days }, (_, i) => ({ key: i + 1, label: String(i + 1) }));
+    }
+
+    function bucketForRecord(record) {
+      if (state.compareLevel === "year") return new Date(record.date + "T00:00:00").getMonth();
+      if (state.compareLevel === "day") return 0;
+      return new Date(record.date + "T00:00:00").getDate();
+    }
+
+    function aggregateComparison(rows, buckets) {
+      const map = new Map();
+      buckets.forEach(b => map.set(b.key, { label: b.label, orders: 0, prodTotal: 0, prodCount: 0 }));
+      rows.forEach(r => {
+        const key = bucketForRecord(r);
+        if (!map.has(key)) return;
+        const item = map.get(key);
+        item.orders += Number(r.orders || 0);
+        const prod = productivity(r);
+        if (Number.isFinite(prod)) {
+          item.prodTotal += prod;
+          item.prodCount += 1;
+        }
+      });
+      return buckets.map(b => {
+        const item = map.get(b.key);
+        return {
+          label: b.label,
+          orders: item.orders,
+          productivity: item.prodCount ? item.prodTotal / item.prodCount : null
+        };
+      });
+    }
+
+    function renderCompareChart(rowsA, rowsB, labelA, labelB) {
+      const svg = $("compareChart");
+      if (!svg) return;
+      const bucketsA = compareBuckets("A");
+      const bucketsB = compareBuckets("B");
+      const maxLen = Math.max(bucketsA.length, bucketsB.length);
+      const buckets = Array.from({ length: maxLen }, (_, i) => bucketsA[i] || bucketsB[i]);
+      const a = aggregateComparison(rowsA, buckets);
+      const b = aggregateComparison(rowsB, buckets);
+      const prodValues = [...a, ...b].map(d => d.productivity).filter(Number.isFinite);
+      const orderValues = [...a, ...b].map(d => d.orders).filter(Number.isFinite);
+      const prodMin = prodValues.length ? Math.min(...prodValues) : 0;
+      const prodMax = prodValues.length ? Math.max(...prodValues) : 1;
+      const orderMax = Math.max(1, ...(orderValues.length ? orderValues : [1]));
+      const w = 1200;
+      const pad = { left: 56, right: 28, mid: 172, bottom: 286 };
+      const innerW = w - pad.left - pad.right;
+      const x = i => pad.left + (maxLen <= 1 ? innerW / 2 : (i / (maxLen - 1)) * innerW);
+      const yProd = value => {
+        const range = prodMax - prodMin || 1;
+        return pad.mid - 34 - ((value - prodMin) / range) * 92;
+      };
+      const yOrder = value => pad.bottom - (value / orderMax) * 70;
+      const linePath = series => {
+        const pts = series.map((d, i) => Number.isFinite(d.productivity) ? [x(i), yProd(d.productivity)] : null).filter(Boolean);
+        return pts.length ? pts.map((p, i) => `${i ? "L" : "M"}${p[0].toFixed(1)},${p[1].toFixed(1)}`).join(" ") : "";
+      };
+      const labelEvery = maxLen > 24 ? 5 : maxLen > 12 ? 2 : 1;
+      const barSlot = Math.max(10, innerW / Math.max(maxLen, 1));
+      const barW = Math.min(13, barSlot / 4);
+      const axisLabels = buckets.map((bucket, i) => i % labelEvery === 0 || i === maxLen - 1
+        ? `<text x="${x(i)}" y="306" text-anchor="middle" font-size="11" fill="#60737a">${bucket.label}</text>`
+        : "").join("");
+      const barsA = a.map((d, i) => `<rect x="${x(i) - barW - 2}" y="${yOrder(d.orders)}" width="${barW}" height="${pad.bottom - yOrder(d.orders)}" rx="3" fill="#00796b" opacity=".78"></rect>`).join("");
+      const barsB = b.map((d, i) => `<rect x="${x(i) + 2}" y="${yOrder(d.orders)}" width="${barW}" height="${pad.bottom - yOrder(d.orders)}" rx="3" fill="#6fcfbe" opacity=".86"></rect>`).join("");
+      const points = (series, color) => series.map((d, i) => Number.isFinite(d.productivity)
+        ? `<circle cx="${x(i)}" cy="${yProd(d.productivity)}" r="4" fill="${color}"><title>${d.label}: ${fmt.format(d.productivity)} prod/h, ${fmt.format(d.orders)} OP</title></circle>`
+        : "").join("");
+      svg.innerHTML = `
+        <rect x="0" y="0" width="1200" height="320" fill="#fbfefd"></rect>
+        <text x="28" y="28" font-size="16" font-weight="800" fill="#10232b">Productividad y OP por ${state.compareLevel === "year" ? "mes" : state.compareLevel === "month" ? "dia" : "dia seleccionado"}</text>
+        <circle cx="835" cy="23" r="6" fill="#00796b"></circle><text x="848" y="28" font-size="12" font-weight="700" fill="#33474f">${labelA}</text>
+        <circle cx="975" cy="23" r="6" fill="#6fcfbe"></circle><text x="988" y="28" font-size="12" font-weight="700" fill="#33474f">${labelB}</text>
+        <line x1="${pad.left}" y1="58" x2="${pad.left}" y2="${pad.mid - 22}" stroke="#cfe0df"></line>
+        <line x1="${pad.left}" y1="${pad.mid - 22}" x2="${w - pad.right}" y2="${pad.mid - 22}" stroke="#cfe0df"></line>
+        <text x="20" y="94" font-size="12" font-weight="800" fill="#00796b" transform="rotate(-90 20 94)">Prod/h</text>
+        <path d="${linePath(a)}" fill="none" stroke="#00796b" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"></path>
+        <path d="${linePath(b)}" fill="none" stroke="#6fcfbe" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"></path>
+        ${points(a, "#00796b")}
+        ${points(b, "#2ab7a6")}
+        <line x1="${pad.left}" y1="${pad.bottom}" x2="${w - pad.right}" y2="${pad.bottom}" stroke="#cfe0df"></line>
+        <text x="20" y="250" font-size="12" font-weight="800" fill="#33474f" transform="rotate(-90 20 250)">OP</text>
+        ${barsA}
+        ${barsB}
+        ${axisLabels}
+      `;
+    }
+
     function periodText() {
       if (state.view === "month") return `${months[state.filterMonth]} ${state.filterYear}`;
       if (state.view === "quarter") return `Trimestre Q${state.filterQuarter} de ${state.filterYear}`;
@@ -1842,7 +2086,14 @@
 
     function renderRecords(rows) {
       const term = ($("recordSearch")?.value || "").trim().toLowerCase();
-      const visibleRows = term ? rows.filter(r => [r.date, r.orders, productivity(r), r.stopHours, r.cause, r.equipment].join(" ").toLowerCase().includes(term)) : rows;
+      const dateFrom = $("recordDateFrom")?.value || "";
+      const dateTo = $("recordDateTo")?.value || "";
+      const visibleRows = rows.filter(r => {
+        const matchesTerm = term ? [r.date, r.orders, productivity(r), r.stopHours, r.cause, r.equipment].join(" ").toLowerCase().includes(term) : true;
+        const matchesFrom = dateFrom ? r.date >= dateFrom : true;
+        const matchesTo = dateTo ? r.date <= dateTo : true;
+        return matchesTerm && matchesFrom && matchesTo;
+      });
       $("recordsRange").textContent = `Mostrando ${visibleRows.length ? `1 a ${visibleRows.length}` : "0"} de ${rows.length} registros`;
       $("recordsBody").innerHTML = visibleRows.length ? visibleRows.map(r => `
         <tr class="record-row" data-date="${r.date}">
@@ -2257,9 +2508,13 @@
       $("exportCsv").addEventListener("click", exportCsv);
       $("importFile").addEventListener("click", importFile);
       $("recordSearch").addEventListener("input", renderAll);
+      $("recordDateFrom").addEventListener("change", renderAll);
+      $("recordDateTo").addEventListener("change", renderAll);
       $("quickExport").addEventListener("click", exportCsv);
       $("quickClearFilters").addEventListener("click", () => {
         $("recordSearch").value = "";
+        $("recordDateFrom").value = "";
+        $("recordDateTo").value = "";
         state.view = "year";
         document.querySelectorAll("[data-view]").forEach(b => b.classList.toggle("active", b.dataset.view === "year"));
         $("monthLabel").hidden = true;
