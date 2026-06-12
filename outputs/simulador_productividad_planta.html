@@ -221,6 +221,25 @@
     .btn.ghost { background: rgba(255,255,255,.08); color: #fff; border-color: rgba(255,255,255,.16); }
     .btn.warn { background: #fff7ed; color: #9a3412; border-color: #fed7aa; }
 
+    .scenario-box {
+      display: grid;
+      gap: 8px;
+      padding: 10px;
+      border: 1px solid rgba(185, 244, 234, .2);
+      border-radius: 10px;
+      background: rgba(255,255,255,.06);
+    }
+
+    .scenario-box small {
+      color: #c9dcda;
+      line-height: 1.35;
+    }
+
+    .scenario-box .btn {
+      min-height: 36px;
+      font-size: 12px;
+    }
+
     main {
       padding: 24px 28px;
       display: grid;
@@ -1180,6 +1199,11 @@
           <button class="btn ghost" id="loadDemo" type="button">Datos demo</button>
           <button class="btn ghost" id="exportCsv" type="button">Exportar CSV</button>
         </div>
+        <div class="scenario-box">
+          <small id="scenarioStatus">Escenario: usa el periodo filtrado para simular productividad sin horas detenidas.</small>
+          <button class="btn primary" id="removeStopsScenario" type="button">Quitar horas de parada</button>
+          <button class="btn ghost" id="restoreStopsScenario" type="button">Restaurar horas detenidas</button>
+        </div>
         <button class="btn warn" id="clearData" type="button">Borrar datos guardados</button>
       </div>
     </aside>
@@ -1861,6 +1885,7 @@
       renderExecutive(rows, reg);
       renderComparison();
       renderCalendar();
+      updateScenarioStatus();
     }
 
     function renderExecutive(rows, reg) {
@@ -2457,6 +2482,76 @@
       }
     }
 
+    function scenarioRecords() {
+      const dates = new Set(filteredRecords().map(r => r.date));
+      return state.records.filter(r => dates.has(r.date));
+    }
+
+    function scenarioImpactPerHour(rows) {
+      const periodReg = regression(rows);
+      const globalReg = regression(state.records);
+      const coefficient = [periodReg?.bStop, globalReg?.bStop]
+        .find(value => Number.isFinite(value) && value < 0);
+      return Number.isFinite(coefficient) ? Math.abs(coefficient) : 0.25;
+    }
+
+    function applyNoStopsScenario() {
+      const rows = scenarioRecords();
+      if (!rows.length) {
+        $("scenarioStatus").textContent = "No hay registros en el periodo filtrado para simular.";
+        return;
+      }
+      const recoveryPerHour = scenarioImpactPerHour(rows);
+      let affected = 0;
+      rows.forEach(r => {
+        const originalStop = Number.isFinite(Number(r._scenarioStopHours)) ? Number(r._scenarioStopHours) : Number(r.stopHours || 0);
+        const originalProd = Number.isFinite(Number(r._scenarioProdHour)) ? Number(r._scenarioProdHour) : productivity(r);
+        const originalOpHours = Number.isFinite(Number(r._scenarioOpHours)) ? Number(r._scenarioOpHours) : effectiveHours(r);
+        if (!Number.isFinite(Number(r._scenarioStopHours))) {
+          r._scenarioStopHours = originalStop;
+          r._scenarioProdHour = originalProd;
+          r._scenarioOpHours = originalOpHours;
+        }
+        r.stopHours = 0;
+        r.opHours = Math.max(0, originalOpHours + originalStop);
+        r.prodHour = Number((originalProd + originalStop * recoveryPerHour).toFixed(2));
+        r._scenarioActive = true;
+        r._scenarioRecoveryPerHour = Number(recoveryPerHour.toFixed(4));
+        affected++;
+      });
+      saveRecords();
+      $("scenarioStatus").textContent = `Escenario sin paradas aplicado a ${affected} dias. Recuperacion estimada: +${fmt.format(recoveryPerHour)} prod/h por hora detenida.`;
+      renderAll();
+    }
+
+    function restoreStopsScenario() {
+      const rows = state.records.filter(r => Number.isFinite(Number(r._scenarioStopHours)));
+      if (!rows.length) {
+        $("scenarioStatus").textContent = "No hay horas detenidas simuladas para restaurar.";
+        return;
+      }
+      rows.forEach(r => {
+        r.stopHours = Number(r._scenarioStopHours);
+        r.prodHour = Number(r._scenarioProdHour);
+        r.opHours = Number(r._scenarioOpHours);
+        delete r._scenarioStopHours;
+        delete r._scenarioProdHour;
+        delete r._scenarioOpHours;
+        delete r._scenarioActive;
+        delete r._scenarioRecoveryPerHour;
+      });
+      saveRecords();
+      $("scenarioStatus").textContent = `Horas detenidas restauradas en ${rows.length} dias.`;
+      renderAll();
+    }
+
+    function updateScenarioStatus() {
+      const active = state.records.filter(r => Number.isFinite(Number(r._scenarioStopHours))).length;
+      if (!active || !$("scenarioStatus")) return;
+      const periodActive = scenarioRecords().filter(r => Number.isFinite(Number(r._scenarioStopHours))).length;
+      $("scenarioStatus").textContent = `Escenario activo: ${periodActive} dias simulados en este periodo, ${active} en total.`;
+    }
+
     function bindForm() {
       $("entryForm").addEventListener("submit", (ev) => {
         ev.preventDefault();
@@ -2497,16 +2592,20 @@
       $("loadDemo").addEventListener("click", () => {
         state.records = demoData();
         saveRecords();
+        $("scenarioStatus").textContent = "Escenario: usa el periodo filtrado para simular productividad sin horas detenidas.";
         renderAll();
       });
       $("clearData").addEventListener("click", () => {
         if (!confirm("¿Borrar todos los datos guardados localmente?")) return;
         state.records = [];
         saveRecords();
+        $("scenarioStatus").textContent = "Escenario: usa el periodo filtrado para simular productividad sin horas detenidas.";
         renderAll();
       });
       $("exportCsv").addEventListener("click", exportCsv);
       $("importFile").addEventListener("click", importFile);
+      $("removeStopsScenario").addEventListener("click", applyNoStopsScenario);
+      $("restoreStopsScenario").addEventListener("click", restoreStopsScenario);
       $("recordSearch").addEventListener("input", renderAll);
       $("recordDateFrom").addEventListener("change", renderAll);
       $("recordDateTo").addEventListener("change", renderAll);
