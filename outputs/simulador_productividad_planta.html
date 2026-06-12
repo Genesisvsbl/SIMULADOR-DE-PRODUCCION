@@ -974,6 +974,182 @@
       line-height: 1.35;
     }
 
+    .decision-grid {
+      display: grid;
+      grid-template-columns: minmax(320px, .95fr) minmax(420px, 1.25fr);
+      gap: 14px;
+    }
+
+    .health-body,
+    .improvement-body,
+    .anomaly-body {
+      padding: 18px;
+    }
+
+    .health-gauge {
+      display: grid;
+      grid-template-columns: 132px 1fr;
+      gap: 18px;
+      align-items: center;
+    }
+
+    .health-body {
+      border-top: 4px solid #00856f;
+      background: linear-gradient(135deg, rgba(240, 253, 250, .95), rgba(255, 255, 255, .9));
+    }
+
+    .health-body.warning {
+      border-top-color: #f59e0b;
+      background: linear-gradient(135deg, rgba(255, 251, 235, .96), rgba(255, 255, 255, .9));
+    }
+
+    .health-body.critical {
+      border-top-color: #dc2626;
+      background: linear-gradient(135deg, rgba(254, 242, 242, .98), rgba(255, 255, 255, .9));
+    }
+
+    .signal-ring {
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      background: conic-gradient(var(--brand) 0deg, var(--brand) 260deg, #e4f2f0 260deg);
+      box-shadow: inset 0 0 0 12px #fff, 0 18px 42px rgba(0, 121, 107, .18);
+    }
+
+    .signal-ring strong {
+      width: 78px;
+      height: 78px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      background: #fff;
+      color: var(--ink);
+      font-size: 26px;
+    }
+
+    .signal-ring.warning {
+      background: conic-gradient(#f59e0b 0deg, #f59e0b 210deg, #fff7ed 210deg);
+      box-shadow: inset 0 0 0 12px #fff, 0 18px 42px rgba(245, 158, 11, .22);
+    }
+
+    .signal-ring.critical {
+      background: conic-gradient(#dc2626 0deg, #dc2626 150deg, #fee2e2 150deg);
+      box-shadow: inset 0 0 0 12px #fff, 0 18px 42px rgba(220, 38, 38, .24);
+    }
+
+    .signal-ring.warning strong { color: #92400e; }
+    .signal-ring.critical strong { color: #991b1b; }
+
+    .health-copy h3 {
+      margin: 0 0 6px;
+      font-size: 24px;
+    }
+
+    .health-copy h3.warning { color: #92400e; }
+    .health-copy h3.critical { color: #991b1b; }
+
+    .health-copy p,
+    .improvement-copy,
+    .anomaly-summary {
+      margin: 0;
+      color: #40535a;
+      line-height: 1.45;
+    }
+
+    .health-checks,
+    .improvement-metrics {
+      margin-top: 16px;
+      display: grid;
+      grid-template-columns: repeat(3, minmax(120px, 1fr));
+      gap: 10px;
+    }
+
+    .health-check,
+    .improvement-metric {
+      border: 1px solid #d9efeb;
+      border-radius: 12px;
+      background: #f7fcfb;
+      padding: 12px;
+      display: grid;
+      gap: 5px;
+    }
+
+    .health-check span,
+    .improvement-metric span {
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 1000;
+      text-transform: uppercase;
+      letter-spacing: .05em;
+    }
+
+    .health-check strong,
+    .improvement-metric strong {
+      font-size: 19px;
+    }
+
+    .health-check.warning {
+      border-color: #fed7aa;
+      background: #fffbeb;
+    }
+
+    .health-check.critical {
+      border-color: #fecaca;
+      background: #fef2f2;
+    }
+
+    .health-check.warning strong { color: #92400e; }
+    .health-check.critical strong { color: #991b1b; }
+
+    .improvement-control {
+      display: grid;
+      gap: 9px;
+      margin-bottom: 14px;
+    }
+
+    .improvement-control input[type="range"] {
+      accent-color: var(--brand);
+    }
+
+    .anomaly-list {
+      display: grid;
+      gap: 10px;
+      padding: 14px 18px 18px;
+    }
+
+    .anomaly-item {
+      border: 1px solid #d9efeb;
+      border-left: 5px solid var(--brand);
+      border-radius: 12px;
+      padding: 12px 14px;
+      background: #fbfefd;
+      display: grid;
+      grid-template-columns: 110px 1fr auto;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .anomaly-item strong {
+      font-size: 15px;
+    }
+
+    .anomaly-item p {
+      margin: 0;
+      color: #40535a;
+      line-height: 1.35;
+    }
+
+    .anomaly-score {
+      border-radius: 999px;
+      background: #dff8f4;
+      color: var(--brand-dark);
+      padding: 6px 10px;
+      font-weight: 1000;
+      font-size: 12px;
+    }
+
     .compare-body {
       padding: 16px 18px 18px;
       display: grid;
@@ -1136,7 +1312,7 @@
     @media (max-width: 1120px) {
       .app-shell { grid-template-columns: 1fr; }
       aside { position: static; height: auto; }
-      .workspace, .chart-grid, .stats-grid { grid-template-columns: 1fr; }
+      .workspace, .chart-grid, .stats-grid, .decision-grid { grid-template-columns: 1fr; }
       .executive-body { grid-template-columns: 1fr 1fr; }
       .compare-body { grid-template-columns: 1fr 1fr; }
       .quick-strip, .quick-inner, .actions-grid { grid-template-columns: 1fr; }
@@ -1443,6 +1619,40 @@
         </div>
       </section>
 
+      <section class="decision-grid view-panel dashboard-panel hidden">
+        <div class="panel">
+          <div class="panel-header"><h3><span class="soft-icon">●</span>Semaforo ejecutivo</h3><small>Salud operativa del periodo</small></div>
+          <div class="health-body">
+            <div class="health-gauge">
+              <div class="signal-ring" id="healthRing"><strong id="healthScore">0</strong></div>
+              <div class="health-copy">
+                <h3 id="healthStatus">Sin lectura</h3>
+                <p id="healthSummary">Carga datos para evaluar el estado operativo.</p>
+              </div>
+            </div>
+            <div class="health-checks">
+              <div class="health-check"><span>Productividad</span><strong id="healthProdStatus">-</strong></div>
+              <div class="health-check"><span>Paradas</span><strong id="healthStopStatus">-</strong></div>
+              <div class="health-check"><span>Riesgo</span><strong id="healthRiskStatus">-</strong></div>
+            </div>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="panel-header"><h3><span class="soft-icon">↗</span>Simulador de mejora</h3><small>Reduce horas detenidas y estima ganancia</small></div>
+          <div class="improvement-body">
+            <label class="improvement-control">Reduccion de horas detenidas: <strong id="improvementValue">20%</strong>
+              <input type="range" id="improvementRange" min="0" max="100" step="5" value="20">
+            </label>
+            <p class="improvement-copy" id="improvementCopy">Ajusta el porcentaje para simular una mejora operacional sin modificar tus datos reales.</p>
+            <div class="improvement-metrics">
+              <div class="improvement-metric"><span>Productividad estimada</span><strong id="improveProd">0</strong><small id="improveProdSub">Sin datos</small></div>
+              <div class="improvement-metric"><span>Horas recuperadas</span><strong id="improveStops">0 h</strong><small id="improveStopsSub">Sin datos</small></div>
+              <div class="improvement-metric"><span>Ganancia esperada</span><strong id="improveGain">0</strong><small id="improveGainSub">Prod/h</small></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <section class="stats-grid view-panel dashboard-panel hidden">
         <div class="stat-card">
           <div class="stat-icon">⌁</div>
@@ -1483,6 +1693,11 @@
         <div class="panel">
           <div class="panel-header"><h3>Productividad vs paradas acumuladas</h3><small>Serie temporal</small></div>
           <div class="chart-wrap"><svg id="timeChart" role="img" aria-label="Serie temporal"></svg></div>
+        </div>
+        <div class="panel">
+          <div class="panel-header"><h3>Deteccion de dias anomalos</h3><small>Alertas automaticas del periodo</small></div>
+          <div class="anomaly-body"><p class="anomaly-summary" id="anomalySummary">Sin lectura suficiente.</p></div>
+          <div class="anomaly-list" id="anomalyList"></div>
         </div>
         <div class="panel">
           <div class="panel-header"><h3>Ranking y comparación</h3><small>Equipos críticos y tipo de parada</small></div>
@@ -1792,6 +2007,17 @@
       return clean.length ? clean.reduce((a, b) => a + b, 0) / clean.length : 0;
     }
 
+    function stddev(values) {
+      const clean = values.filter(Number.isFinite);
+      if (clean.length < 2) return 0;
+      const avg = average(clean);
+      return Math.sqrt(clean.reduce((a, b) => a + (b - avg) ** 2, 0) / clean.length);
+    }
+
+    function safeZ(value, avg, deviation) {
+      return deviation ? (value - avg) / deviation : 0;
+    }
+
     function sumBy(rows, key) {
       const map = new Map();
       rows.forEach(r => map.set(r[key], (map.get(r[key]) || 0) + Number(r.stopHours)));
@@ -1883,6 +2109,9 @@
       renderRanking(rows);
       renderReport(rows, reg);
       renderExecutive(rows, reg);
+      renderTrafficLight(rows, reg);
+      renderImprovement(rows, reg);
+      renderAnomalies(rows);
       renderComparison();
       renderCalendar();
       updateScenarioStatus();
@@ -1948,6 +2177,151 @@
       $("execDecisionSub").textContent = decisionSub;
       $("execOpportunity").textContent = `${fmt.format(topCauseHours)} h`;
       $("execOpportunitySub").textContent = `Horas concentradas en ${topCause}. Ahí está la primera palanca de mejora.`;
+    }
+
+    function anomalyScores(rows) {
+      if (rows.length < 4) return [];
+      const prodValues = rows.map(productivity);
+      const stopValues = rows.map(r => Number(r.stopHours));
+      const orderValues = rows.map(r => Number(r.orders));
+      const avgProd = average(prodValues);
+      const avgStop = average(stopValues);
+      const avgOrders = average(orderValues);
+      const sdProd = stddev(prodValues);
+      const sdStop = stddev(stopValues);
+      const sdOrders = stddev(orderValues);
+      return rows.map(r => {
+        const prod = productivity(r);
+        const stops = Number(r.stopHours);
+        const orders = Number(r.orders);
+        const lowProd = Math.max(0, -safeZ(prod, avgProd, sdProd));
+        const highStop = Math.max(0, safeZ(stops, avgStop, sdStop));
+        const highOrders = Math.max(0, safeZ(orders, avgOrders, sdOrders));
+        const combined = lowProd * 1.15 + highStop * 1.05 + (highOrders && lowProd ? highOrders * .65 : 0);
+        const reasons = [];
+        if (lowProd >= .9) reasons.push(`productividad baja (${fmt.format(prod)} vs prom. ${fmt.format(avgProd)})`);
+        if (highStop >= .9) reasons.push(`paradas altas (${fmt.format(stops)} h vs prom. ${fmt.format(avgStop)} h)`);
+        if (highOrders >= .9 && lowProd >= .5) reasons.push(`alta carga de OP (${fmt.format(orders)}) con bajo rendimiento`);
+        return { record: r, score: combined, reasons };
+      })
+        .filter(item => item.score >= 1 || item.reasons.length)
+        .sort((a, b) => b.score - a.score);
+    }
+
+    function renderTrafficLight(rows, reg) {
+      if (!rows.length) {
+        $("healthRing").className = "signal-ring";
+        $("healthRing").closest(".health-body").className = "health-body";
+        $("healthScore").textContent = "0";
+        $("healthStatus").className = "";
+        $("healthStatus").textContent = "Sin lectura";
+        $("healthSummary").textContent = "Carga datos para evaluar el estado operativo.";
+        $("healthProdStatus").textContent = "-";
+        $("healthStopStatus").textContent = "-";
+        $("healthRiskStatus").textContent = "-";
+        document.querySelectorAll(".health-check").forEach(card => card.className = "health-check");
+        return;
+      }
+      const prod = rows.map(productivity);
+      const stopRates = rows.map(stopRate);
+      const avgProd = average(prod);
+      const avgStop = average(stopRates);
+      const cStop = correlation(rows.map(r => Number(r.stopHours)), prod);
+      const anomalies = anomalyScores(rows);
+      const prodSpread = stddev(prod) / Math.max(avgProd, 1);
+      let score = 100;
+      score -= Math.min(38, avgStop * 120);
+      score -= Math.min(24, Math.max(0, -cStop) * 30);
+      score -= Math.min(18, anomalies.length * 4);
+      score -= Math.min(12, prodSpread * 45);
+      score = Math.max(0, Math.round(score));
+      let status = "Verde - controlado";
+      let cls = "signal-ring";
+      let level = "healthy";
+      if (score < 62) {
+        status = "Rojo - accion inmediata";
+        cls = "signal-ring critical";
+        level = "critical";
+      } else if (score < 78) {
+        status = "Amarillo - vigilancia";
+        cls = "signal-ring warning";
+        level = "warning";
+      }
+      $("healthRing").className = cls;
+      $("healthRing").closest(".health-body").className = `health-body ${level === "healthy" ? "" : level}`.trim();
+      $("healthScore").textContent = score;
+      $("healthStatus").className = level === "healthy" ? "" : level;
+      $("healthStatus").textContent = status;
+      $("healthSummary").textContent = `${periodText()}: productividad promedio ${fmt.format(avgProd)} por hora, parada promedio ${pct.format(avgStop)} y ${anomalies.length} dias con alerta.`;
+      const prodCard = $("healthProdStatus").closest(".health-check");
+      const stopCard = $("healthStopStatus").closest(".health-check");
+      const riskCard = $("healthRiskStatus").closest(".health-check");
+      prodCard.className = `health-check ${prodSpread > .16 ? "critical" : prodSpread > .12 ? "warning" : ""}`.trim();
+      stopCard.className = `health-check ${avgStop > .22 ? "critical" : avgStop > .12 ? "warning" : ""}`.trim();
+      riskCard.className = `health-check ${cStop < -0.45 ? "critical" : anomalies.length >= 3 ? "warning" : ""}`.trim();
+      $("healthProdStatus").textContent = prodSpread > .12 ? "Variable" : "Estable";
+      $("healthStopStatus").textContent = avgStop > .22 ? "Criticas" : avgStop > .12 ? "Vigilar" : "Controladas";
+      $("healthRiskStatus").textContent = cStop < -0.45 ? "Paradas dominan" : anomalies.length >= 3 ? "Dias atipicos" : "Bajo";
+    }
+
+    function renderImprovement(rows, reg) {
+      const reduction = Number($("improvementRange")?.value || 20);
+      $("improvementValue").textContent = `${reduction}%`;
+      if (!rows.length) {
+        $("improvementCopy").textContent = "No hay datos en el periodo seleccionado para simular mejora.";
+        $("improveProd").textContent = "0";
+        $("improveProdSub").textContent = "Sin datos";
+        $("improveStops").textContent = "0 h";
+        $("improveStopsSub").textContent = "Sin datos";
+        $("improveGain").textContent = "0";
+        $("improveGainSub").textContent = "Prod/h";
+        return;
+      }
+      const prod = rows.map(productivity);
+      const avgProd = average(prod);
+      const totalStop = rows.reduce((a, r) => a + Number(r.stopHours), 0);
+      const recoveredHours = totalStop * reduction / 100;
+      const coefficient = Number.isFinite(reg?.bStop) && reg.bStop < 0 ? Math.abs(reg.bStop) : scenarioImpactPerHour(rows);
+      const gain = rows.length ? (recoveredHours * coefficient) / rows.length : 0;
+      const improvedProd = avgProd + gain;
+      $("improvementCopy").textContent = `Si reduces ${reduction}% de las horas detenidas del periodo, el modelo estima una recuperacion promedio de ${fmt.format(gain)} puntos de productividad por hora.`;
+      $("improveProd").textContent = fmt.format(improvedProd);
+      $("improveProdSub").textContent = `Actual: ${fmt.format(avgProd)} por hora`;
+      $("improveStops").textContent = `${fmt.format(recoveredHours)} h`;
+      $("improveStopsSub").textContent = `De ${fmt.format(totalStop)} h detenidas`;
+      $("improveGain").textContent = `+${fmt.format(gain)}`;
+      $("improveGainSub").textContent = `Coef. usado: ${fmt.format(coefficient)} por hora detenida`;
+    }
+
+    function renderAnomalies(rows) {
+      const anomalies = anomalyScores(rows).slice(0, 5);
+      if (!rows.length) {
+        $("anomalySummary").textContent = "No hay datos para detectar anomalias.";
+        $("anomalyList").innerHTML = "";
+        return;
+      }
+      if (rows.length < 4) {
+        $("anomalySummary").textContent = "Se necesitan al menos 4 dias en el periodo para detectar anomalias con estabilidad.";
+        $("anomalyList").innerHTML = "";
+        return;
+      }
+      if (!anomalies.length) {
+        $("anomalySummary").textContent = "No se detectan dias atipicos relevantes en este periodo. La operacion luce consistente.";
+        $("anomalyList").innerHTML = "";
+        return;
+      }
+      $("anomalySummary").textContent = `${anomalies.length} dias requieren revision ejecutiva por baja productividad, paradas altas o exceso de OP con bajo rendimiento.`;
+      $("anomalyList").innerHTML = anomalies.map(item => {
+        const r = item.record;
+        const reason = item.reasons.length ? item.reasons.join("; ") : "comportamiento fuera del patron del periodo";
+        return `
+          <div class="anomaly-item">
+            <strong>${r.date}</strong>
+            <p>${reason}. Causa: <strong>${r.cause}</strong>. Equipo: <strong>${r.equipment}</strong>.</p>
+            <span class="anomaly-score">${fmt.format(item.score)}</span>
+          </div>
+        `;
+      }).join("");
     }
 
     function renderComparisonLegacy() {
@@ -2606,6 +2980,7 @@
       $("importFile").addEventListener("click", importFile);
       $("removeStopsScenario").addEventListener("click", applyNoStopsScenario);
       $("restoreStopsScenario").addEventListener("click", restoreStopsScenario);
+      $("improvementRange").addEventListener("input", renderAll);
       $("recordSearch").addEventListener("input", renderAll);
       $("recordDateFrom").addEventListener("change", renderAll);
       $("recordDateTo").addEventListener("change", renderAll);
