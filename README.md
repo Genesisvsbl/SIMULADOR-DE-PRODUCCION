@@ -13,10 +13,9 @@ streamlit run app.py
 
 - Fecha
 - OP
-- Toneladas
-- Horas operación
-- Horas parada
+- Productividad por hora
+- Horas detenidas
 - Causa principal
 - Equipo / área afectada
 
-El simulador también permite carga manual desde calendario, importación CSV/XLSX, KPIs, correlaciones, regresión múltiple y reportes ejecutivos.
+El simulador también permite carga manual desde calendario, importación CSV/XLSX, KPIs, correlaciones, regresión múltiple, comparación de periodos y reportes ejecutivos.

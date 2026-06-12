@@ -526,6 +526,22 @@
       gap: 8px;
     }
 
+    .calendar-jump {
+      display: grid;
+      grid-template-columns: 116px 82px;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .calendar-jump select {
+      min-height: 34px;
+      border-radius: 10px;
+      padding: 6px 28px 6px 10px;
+      font-size: 12px;
+      font-weight: 900;
+      background: #fff;
+    }
+
     .icon-btn {
       width: 34px;
       height: 34px;
@@ -819,6 +835,144 @@
       gap: 12px;
     }
 
+    .compare-panel {
+      background: rgba(255,255,255,.92);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .executive-panel {
+      background: linear-gradient(135deg, rgba(255,255,255,.96), rgba(238, 248, 246, .92));
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .executive-body {
+      padding: 18px;
+      display: grid;
+      grid-template-columns: minmax(280px, 1.2fr) repeat(3, minmax(190px, 1fr));
+      gap: 14px;
+      align-items: stretch;
+    }
+
+    .exec-main,
+    .exec-card {
+      border: 1px solid #d9efeb;
+      border-radius: 14px;
+      background: rgba(255,255,255,.82);
+      padding: 16px;
+      display: grid;
+      gap: 8px;
+      align-content: start;
+    }
+
+    .exec-main {
+      background: #f3fbf9;
+    }
+
+    .exec-label {
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 1000;
+      letter-spacing: .05em;
+      text-transform: uppercase;
+    }
+
+    .exec-title {
+      margin: 0;
+      font-size: 23px;
+      line-height: 1.12;
+    }
+
+    .exec-copy {
+      margin: 0;
+      color: #40535a;
+      line-height: 1.45;
+      font-size: 14px;
+    }
+
+    .status-pill {
+      width: fit-content;
+      min-height: 30px;
+      border-radius: 999px;
+      padding: 6px 12px;
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      background: #dff8f4;
+      color: var(--brand-dark);
+      font-weight: 1000;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+    }
+
+    .status-pill.warning {
+      background: #ecfdf5;
+      color: #166534;
+    }
+
+    .status-pill.critical {
+      background: #d1fae5;
+      color: #064e3b;
+    }
+
+    .exec-card strong {
+      font-size: 18px;
+      line-height: 1.15;
+    }
+
+    .exec-card small {
+      color: var(--muted);
+      line-height: 1.35;
+    }
+
+    .compare-body {
+      padding: 16px 18px 18px;
+      display: grid;
+      grid-template-columns: minmax(260px, .9fr) minmax(260px, .9fr) repeat(4, minmax(150px, 1fr));
+      gap: 14px;
+      align-items: end;
+    }
+
+    .compare-picker {
+      display: grid;
+      grid-template-columns: 1fr 92px;
+      gap: 8px;
+    }
+
+    .compare-metric {
+      min-height: 82px;
+      padding: 12px;
+      border-radius: 12px;
+      background: #f5fbfa;
+      border: 1px solid #d9efeb;
+      display: grid;
+      gap: 5px;
+    }
+
+    .compare-metric span {
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+    }
+
+    .compare-metric strong {
+      font-size: 20px;
+      line-height: 1;
+    }
+
+    .compare-metric small {
+      color: var(--muted);
+      line-height: 1.25;
+    }
+
     .stat-card {
       padding: 18px;
       display: grid;
@@ -920,6 +1074,8 @@
       .app-shell { grid-template-columns: 1fr; }
       aside { position: static; height: auto; }
       .workspace, .chart-grid, .stats-grid { grid-template-columns: 1fr; }
+      .executive-body { grid-template-columns: 1fr 1fr; }
+      .compare-body { grid-template-columns: 1fr 1fr; }
       .quick-strip, .quick-inner, .actions-grid { grid-template-columns: 1fr; }
       .app-shell { grid-template-columns: 1fr; }
       aside { position: static; width: auto; height: auto; }
@@ -933,6 +1089,8 @@
     @media (max-width: 640px) {
       main { padding: 14px; }
       .kpi-grid, .form-grid { grid-template-columns: 1fr; }
+      .executive-body { grid-template-columns: 1fr; }
+      .compare-body, .compare-picker { grid-template-columns: 1fr; }
       .button-row { grid-template-columns: 1fr; }
       svg { height: 250px; }
     }
@@ -998,18 +1156,47 @@
       </section>
 
       <section class="kpi-grid view-panel dashboard-panel hidden" aria-label="Indicadores principales">
-        <div class="kpi"><div class="kpi-icon">◔</div><div class="kpi-body"><span>Productividad promedio</span><strong id="kpiProd">0.00</strong><small>Toneladas por hora efectiva</small></div></div>
+        <div class="kpi"><div class="kpi-icon">◔</div><div class="kpi-body"><span>Productividad promedio</span><strong id="kpiProd">0.00</strong><small>Productividad por hora</small></div></div>
         <div class="kpi orange"><div class="kpi-icon">⏱</div><div class="kpi-body"><span>% parada promedio</span><strong id="kpiStop">0.0%</strong><small>Horas parada sobre horas totales</small></div></div>
         <div class="kpi violet"><div class="kpi-icon">⚙</div><div class="kpi-body"><span>Top causa</span><strong id="kpiTopCause">-</strong><small id="kpiTopCauseSub">Sin datos</small></div></div>
         <div class="kpi red"><div class="kpi-icon">↘</div><div class="kpi-body"><span>Impacto paradas</span><strong id="kpiStopImpact">0.00</strong><small>Coeficiente en regresión múltiple</small></div></div>
         <div class="kpi blue"><div class="kpi-icon">Σ</div><div class="kpi-body"><span>Modelo OP / Parada</span><strong id="kpiModel">-</strong><small>Regresión múltiple</small></div></div>
       </section>
 
+      <section class="executive-panel view-panel dashboard-panel hidden">
+        <div class="panel-header">
+          <h3><span class="soft-icon">◎</span>Lectura ejecutiva</h3>
+          <small>Diagnóstico gerencial del periodo</small>
+        </div>
+        <div class="executive-body">
+          <div class="exec-main">
+            <span class="status-pill" id="execStatus">Sin datos</span>
+            <h3 class="exec-title" id="execHeadline">Carga datos para generar una lectura ejecutiva.</h3>
+            <p class="exec-copy" id="execSummary">El sistema explicará si la productividad está siendo afectada principalmente por paradas, carga de OP o causas operativas.</p>
+          </div>
+          <div class="exec-card">
+            <span class="exec-label">Principal foco</span>
+            <strong id="execFocus">-</strong>
+            <small id="execFocusSub">Sin lectura suficiente</small>
+          </div>
+          <div class="exec-card">
+            <span class="exec-label">Decisión sugerida</span>
+            <strong id="execDecision">-</strong>
+            <small id="execDecisionSub">Pendiente de datos</small>
+          </div>
+          <div class="exec-card">
+            <span class="exec-label">Oportunidad</span>
+            <strong id="execOpportunity">-</strong>
+            <small id="execOpportunitySub">Se calcula con las horas detenidas acumuladas</small>
+          </div>
+        </div>
+      </section>
+
       <section class="data-tools view-panel data-panel">
         <div class="panel">
           <div class="panel-header">
             <h3 class="import-title"><span class="soft-icon">⇪</span>Importar Excel o CSV</h3>
-            <small>Columnas requeridas: Fecha, OP, Toneladas, Horas operación, Horas parada, Causa, Equipo</small>
+            <small>Columnas requeridas: Fecha, OP, Productividad hora, Horas detenidas, Causa, Equipo</small>
           </div>
           <div class="upload-zone">
             <label>Archivo de datos
@@ -1027,7 +1214,10 @@
             <h3><span class="soft-icon">□</span>Calendario de carga</h3>
             <div class="calendar-nav">
               <button class="icon-btn" id="prevMonth" type="button" title="Mes anterior">‹</button>
-              <strong id="calendarTitle"></strong>
+              <div class="calendar-jump">
+                <select id="calendarMonthSelect" title="Seleccionar mes"></select>
+                <select id="calendarYearSelect" title="Seleccionar año"></select>
+              </div>
               <button class="icon-btn" id="nextMonth" type="button" title="Mes siguiente">›</button>
             </div>
           </div>
@@ -1042,9 +1232,9 @@
             </div>
             <div class="summary-metrics">
               <div><strong id="dayOp">0</strong><span>OP</span></div>
-              <div><strong id="dayTons">0</strong><span>Toneladas</span></div>
-              <div><strong id="dayHours">0</strong><span>Horas operación</span></div>
-              <div><strong id="dayStops">0</strong><span>Horas parada</span></div>
+              <div><strong id="dayProd">0</strong><span>Prod./hora</span></div>
+              <div><strong id="dayHours">0</strong><span>Horas efectivas</span></div>
+              <div><strong id="dayStops">0</strong><span>Horas detenidas</span></div>
             </div>
           </div>
         </div>
@@ -1062,13 +1252,10 @@
               <label>OP
                 <input type="number" id="orders" min="0" step="1" required>
               </label>
-              <label>Toneladas
-                <input type="number" id="tons" min="0" step="0.01" required>
+              <label>Productividad por hora
+                <input type="number" id="prodHour" min="0" step="0.01" required>
               </label>
-              <label>Horas operación
-                <input type="number" id="opHours" min="0" step="0.1" required>
-              </label>
-              <label>Horas parada
+              <label>Horas detenidas
                 <input type="number" id="stopHours" min="0" step="0.1" required>
               </label>
               <label>Causa principal
@@ -1109,7 +1296,7 @@
           <div class="table-scroll">
             <table>
               <thead>
-                <tr><th>Fecha</th><th>OP</th><th>Ton</th><th>Prod.</th><th>% parada</th><th>Causa</th><th>Equipo</th></tr>
+                <tr><th>Fecha</th><th>OP</th><th>Prod./h</th><th>H. detenidas</th><th>% parada</th><th>Causa</th><th>Equipo</th></tr>
               </thead>
               <tbody id="recordsBody"></tbody>
             </table>
@@ -1138,6 +1325,31 @@
             <button class="action-card" id="quickExport" type="button">Exportar datos<br><small>CSV / Excel</small></button>
             <button class="action-card" id="quickClearFilters" type="button">Limpiar filtros<br><small>Ver todos</small></button>
           </div>
+        </div>
+      </section>
+
+      <section class="compare-panel view-panel dashboard-panel hidden">
+        <div class="panel-header">
+          <h3><span class="soft-icon">⇄</span>Comparar periodos</h3>
+          <small>Compara un mes contra otro mes</small>
+        </div>
+        <div class="compare-body">
+          <label>Periodo A
+            <div class="compare-picker">
+              <select id="compareMonthA"></select>
+              <select id="compareYearA"></select>
+            </div>
+          </label>
+          <label>Periodo B
+            <div class="compare-picker">
+              <select id="compareMonthB"></select>
+              <select id="compareYearB"></select>
+            </div>
+          </label>
+          <div class="compare-metric"><span>Productividad</span><strong id="cmpProd">0</strong><small id="cmpProdSub">Sin comparación</small></div>
+          <div class="compare-metric"><span>% Parada</span><strong id="cmpStopRate">0</strong><small id="cmpStopRateSub">Sin comparación</small></div>
+          <div class="compare-metric"><span>Horas parada</span><strong id="cmpStopHours">0</strong><small id="cmpStopHoursSub">Sin comparación</small></div>
+          <div class="compare-metric"><span>Top causa B</span><strong id="cmpTopCause">-</strong><small id="cmpTopCauseSub">Sin datos</small></div>
         </div>
       </section>
 
@@ -1213,6 +1425,10 @@
       filterYear: 2026,
       filterMonth: 5,
       filterQuarter: 2,
+      compareMonthA: 4,
+      compareYearA: 2026,
+      compareMonthB: 5,
+      compareYearB: 2026,
       calendarYear: 2026,
       calendarMonth: 5,
       selectedDate: "2026-06-11"
@@ -1221,11 +1437,18 @@
     const $ = (id) => document.getElementById(id);
 
     function productivity(r) {
+      if (Number.isFinite(Number(r.prodHour))) return Number(r.prodHour);
+      if (Number.isFinite(Number(r.productivity))) return Number(r.productivity);
       return Number(r.opHours) > 0 ? Number(r.tons) / Number(r.opHours) : 0;
     }
 
+    function effectiveHours(r) {
+      if (Number.isFinite(Number(r.opHours)) && Number(r.opHours) > 0) return Number(r.opHours);
+      return Math.max(0, 24 - Number(r.stopHours || 0));
+    }
+
     function stopRate(r) {
-      const total = Number(r.opHours) + Number(r.stopHours);
+      const total = effectiveHours(r) + Number(r.stopHours);
       return total > 0 ? Number(r.stopHours) / total : 0;
     }
 
@@ -1257,11 +1480,11 @@
             const stopHours = Math.max(0.4, 1.2 + (d % 6) * 0.55 + (m % 3) * 0.6 + (orders > 24 ? 1.1 : 0));
             const opHours = 16 + (d % 4) * 1.2;
             const baseProd = 12.8 + seasonal * 0.8 - stopHours * 0.38 - orders * 0.035;
-            const tons = Math.max(20, baseProd * opHours + (d % 7) * 2.7);
+            const prodHour = Math.max(4, baseProd + (d % 7) * 0.08);
             rows.push({
               date: date.toISOString().slice(0, 10),
               orders,
-              tons: Number(tons.toFixed(2)),
+              prodHour: Number(prodHour.toFixed(2)),
               opHours: Number(opHours.toFixed(1)),
               stopHours: Number(stopHours.toFixed(1)),
               cause: causes[(d + m + y) % causes.length],
@@ -1278,9 +1501,27 @@
       for (let y = 2023; y <= 2035; y++) $("filterYear").append(new Option(String(y), String(y)));
       $("filterMonth").innerHTML = "";
       months.forEach((m, i) => $("filterMonth").append(new Option(m, String(i))));
+      $("calendarMonthSelect").innerHTML = "";
+      months.forEach((m, i) => $("calendarMonthSelect").append(new Option(m, String(i))));
+      $("calendarYearSelect").innerHTML = "";
+      for (let y = 2023; y <= 2035; y++) $("calendarYearSelect").append(new Option(String(y), String(y)));
+      ["compareMonthA", "compareMonthB"].forEach(id => {
+        $(id).innerHTML = "";
+        months.forEach((m, i) => $(id).append(new Option(m, String(i))));
+      });
+      ["compareYearA", "compareYearB"].forEach(id => {
+        $(id).innerHTML = "";
+        for (let y = 2023; y <= 2035; y++) $(id).append(new Option(String(y), String(y)));
+      });
       $("filterYear").value = state.filterYear;
       $("filterMonth").value = state.filterMonth;
       $("filterQuarter").value = state.filterQuarter;
+      $("calendarMonthSelect").value = state.calendarMonth;
+      $("calendarYearSelect").value = state.calendarYear;
+      $("compareMonthA").value = state.compareMonthA;
+      $("compareYearA").value = state.compareYearA;
+      $("compareMonthB").value = state.compareMonthB;
+      $("compareYearB").value = state.compareYearB;
       document.querySelectorAll("[data-view]").forEach(btn => {
         btn.addEventListener("click", () => {
           state.view = btn.dataset.view;
@@ -1295,6 +1536,18 @@
         state.filterMonth = Number($("filterMonth").value);
         state.filterQuarter = Number($("filterQuarter").value);
         renderAll();
+      }));
+      ["calendarMonthSelect", "calendarYearSelect"].forEach(id => $(id).addEventListener("change", () => {
+        state.calendarMonth = Number($("calendarMonthSelect").value);
+        state.calendarYear = Number($("calendarYearSelect").value);
+        selectDate(`${state.calendarYear}-${String(state.calendarMonth + 1).padStart(2, "0")}-01`);
+      }));
+      ["compareMonthA", "compareYearA", "compareMonthB", "compareYearB"].forEach(id => $(id).addEventListener("change", () => {
+        state.compareMonthA = Number($("compareMonthA").value);
+        state.compareYearA = Number($("compareYearA").value);
+        state.compareMonthB = Number($("compareMonthB").value);
+        state.compareYearB = Number($("compareYearB").value);
+        renderComparison();
       }));
       document.querySelectorAll("[data-screen]").forEach(btn => {
         btn.addEventListener("click", () => setScreen(btn.dataset.screen));
@@ -1313,7 +1566,8 @@
     }
 
     function renderCalendar() {
-      $("calendarTitle").textContent = `${months[state.calendarMonth]} ${state.calendarYear}`;
+      $("calendarMonthSelect").value = state.calendarMonth;
+      $("calendarYearSelect").value = state.calendarYear;
       const first = new Date(state.calendarYear, state.calendarMonth, 1);
       const startOffset = (first.getDay() + 6) % 7;
       const start = new Date(state.calendarYear, state.calendarMonth, 1 - startOffset);
@@ -1350,16 +1604,15 @@
       const existing = state.records.find(r => r.date === iso);
       $("date").value = iso;
       $("orders").value = existing?.orders ?? "";
-      $("tons").value = existing?.tons ?? "";
-      $("opHours").value = existing?.opHours ?? "";
+      $("prodHour").value = existing ? productivity(existing).toFixed(2) : "";
       $("stopHours").value = existing?.stopHours ?? "";
       $("cause").value = existing?.cause ?? "Mantenimiento";
       $("equipment").value = existing?.equipment ?? "";
       $("notes").value = existing?.notes ?? "";
       $("selectedDateLabel").textContent = existing ? new Date(iso + "T00:00:00").toLocaleDateString("es-CO", { weekday: "long", year: "numeric", month: "long", day: "numeric" }) : `${iso} · sin registro`;
       $("dayOp").textContent = existing ? fmt.format(Number(existing.orders)) : "0";
-      $("dayTons").textContent = existing ? fmt.format(Number(existing.tons)) : "0";
-      $("dayHours").textContent = existing ? fmt.format(Number(existing.opHours)) : "0";
+      $("dayProd").textContent = existing ? fmt.format(productivity(existing)) : "0";
+      $("dayHours").textContent = existing ? fmt.format(effectiveHours(existing)) : "0";
       $("dayStops").textContent = existing ? fmt.format(Number(existing.stopHours)) : "0";
       renderCalendar();
     }
@@ -1374,6 +1627,30 @@
           return true;
         })
         .sort((a, b) => a.date.localeCompare(b.date));
+    }
+
+    function monthRecords(year, month) {
+      return state.records
+        .filter(r => {
+          const d = new Date(r.date + "T00:00:00");
+          return d.getFullYear() === year && d.getMonth() === month;
+        })
+        .sort((a, b) => a.date.localeCompare(b.date));
+    }
+
+    function periodSummary(rows) {
+      const prod = rows.map(productivity);
+      const stopRates = rows.map(stopRate);
+      const stopHours = rows.reduce((a, r) => a + Number(r.stopHours), 0);
+      const causes = sumBy(rows, "cause");
+      return {
+        count: rows.length,
+        productivity: average(prod),
+        stopRate: average(stopRates),
+        stopHours,
+        topCause: causes[0]?.[0] || "-",
+        topCauseHours: causes[0]?.[1] || 0
+      };
     }
 
     function average(values) {
@@ -1471,7 +1748,90 @@
       renderTime(rows);
       renderRanking(rows);
       renderReport(rows, reg);
+      renderExecutive(rows, reg);
+      renderComparison();
       renderCalendar();
+    }
+
+    function renderExecutive(rows, reg) {
+      if (!rows.length) {
+        $("execStatus").className = "status-pill";
+        $("execStatus").textContent = "Sin datos";
+        $("execHeadline").textContent = "Carga datos para generar una lectura ejecutiva.";
+        $("execSummary").textContent = "El sistema explicará si la productividad está siendo afectada principalmente por paradas, carga de OP o causas operativas.";
+        $("execFocus").textContent = "-";
+        $("execFocusSub").textContent = "Sin lectura suficiente";
+        $("execDecision").textContent = "-";
+        $("execDecisionSub").textContent = "Pendiente de datos";
+        $("execOpportunity").textContent = "-";
+        $("execOpportunitySub").textContent = "Se calcula con las horas detenidas acumuladas";
+        return;
+      }
+
+      const prod = rows.map(productivity);
+      const avgProd = average(prod);
+      const avgStop = average(rows.map(stopRate));
+      const totalStop = rows.reduce((a, r) => a + Number(r.stopHours), 0);
+      const causes = sumBy(rows, "cause");
+      const equipment = sumBy(rows, "equipment");
+      const cOp = correlation(rows.map(r => Number(r.orders)), prod);
+      const cStop = correlation(rows.map(r => Number(r.stopHours)), prod);
+      const topCause = causes[0]?.[0] || "Sin causa";
+      const topCauseHours = causes[0]?.[1] || 0;
+      const topEquipment = equipment[0]?.[0] || "Sin equipo";
+
+      let status = "Controlado";
+      let statusClass = "status-pill";
+      if (avgStop >= 0.22 || cStop <= -0.55) {
+        status = "Atención alta";
+        statusClass = "status-pill critical";
+      } else if (avgStop >= 0.12 || cStop <= -0.25) {
+        status = "Vigilancia";
+        statusClass = "status-pill warning";
+      }
+
+      const dominantDriver = Math.abs(cStop) >= Math.abs(cOp)
+        ? "Horas detenidas"
+        : "Carga de OP";
+      const driverText = dominantDriver === "Horas detenidas"
+        ? `La pérdida de productividad está más explicada por paradas que por cantidad de OP.`
+        : `La variación de productividad parece más asociada a la carga de OP que a las horas detenidas.`;
+      const decision = dominantDriver === "Horas detenidas"
+        ? "Atacar causa raíz de paradas"
+        : "Balancear secuencia y tamaño de OP";
+      const decisionSub = dominantDriver === "Horas detenidas"
+        ? `Prioriza ${topCause} en ${topEquipment}.`
+        : "Revisa mezcla de referencias, lote económico y cambios de programación.";
+
+      $("execStatus").className = statusClass;
+      $("execStatus").textContent = status;
+      $("execHeadline").textContent = `${periodText()}: productividad ${fmt.format(avgProd)} por hora con ${fmt.format(totalStop)} horas detenidas.`;
+      $("execSummary").textContent = `${driverText} El foco operativo del periodo es ${topCause}, con ${fmt.format(topCauseHours)} horas acumuladas.`;
+      $("execFocus").textContent = dominantDriver;
+      $("execFocusSub").textContent = `Correlación parada/productividad: ${fmt.format(cStop)} · OP/productividad: ${fmt.format(cOp)}`;
+      $("execDecision").textContent = decision;
+      $("execDecisionSub").textContent = decisionSub;
+      $("execOpportunity").textContent = `${fmt.format(topCauseHours)} h`;
+      $("execOpportunitySub").textContent = `Horas concentradas en ${topCause}. Ahí está la primera palanca de mejora.`;
+    }
+
+    function renderComparison() {
+      const a = periodSummary(monthRecords(state.compareYearA, state.compareMonthA));
+      const b = periodSummary(monthRecords(state.compareYearB, state.compareMonthB));
+      const labelA = `${months[state.compareMonthA]} ${state.compareYearA}`;
+      const labelB = `${months[state.compareMonthB]} ${state.compareYearB}`;
+      const diffProd = b.productivity - a.productivity;
+      const diffStopRate = b.stopRate - a.stopRate;
+      const diffStopHours = b.stopHours - a.stopHours;
+      const sign = value => value > 0 ? "+" : "";
+      $("cmpProd").textContent = `${sign(diffProd)}${fmt.format(diffProd)}`;
+      $("cmpProdSub").textContent = `${labelB} vs ${labelA} · ${b.count} registros`;
+      $("cmpStopRate").textContent = `${sign(diffStopRate)}${pct.format(diffStopRate)}`;
+      $("cmpStopRateSub").textContent = `Cambio en % parada promedio`;
+      $("cmpStopHours").textContent = `${sign(diffStopHours)}${fmt.format(diffStopHours)} h`;
+      $("cmpStopHoursSub").textContent = `${fmt.format(b.stopHours)} h en ${labelB}`;
+      $("cmpTopCause").textContent = b.topCause;
+      $("cmpTopCauseSub").textContent = `${fmt.format(b.topCauseHours)} h en periodo B`;
     }
 
     function periodText() {
@@ -1482,14 +1842,14 @@
 
     function renderRecords(rows) {
       const term = ($("recordSearch")?.value || "").trim().toLowerCase();
-      const visibleRows = term ? rows.filter(r => [r.date, r.orders, r.tons, r.cause, r.equipment].join(" ").toLowerCase().includes(term)) : rows;
+      const visibleRows = term ? rows.filter(r => [r.date, r.orders, productivity(r), r.stopHours, r.cause, r.equipment].join(" ").toLowerCase().includes(term)) : rows;
       $("recordsRange").textContent = `Mostrando ${visibleRows.length ? `1 a ${visibleRows.length}` : "0"} de ${rows.length} registros`;
       $("recordsBody").innerHTML = visibleRows.length ? visibleRows.map(r => `
         <tr class="record-row" data-date="${r.date}">
           <td>${r.date}</td>
           <td>${r.orders}</td>
-          <td>${fmt.format(Number(r.tons))}</td>
           <td>${fmt.format(productivity(r))}</td>
+          <td>${fmt.format(Number(r.stopHours))}</td>
           <td>${pct.format(stopRate(r))}</td>
           <td>${r.cause}</td>
           <td>${r.equipment}</td>
@@ -1599,7 +1959,7 @@
     function scatterNarrative(r) {
       const prod = productivity(r);
       const stop = stopRate(r);
-      return `<strong>${r.date}</strong>: ${r.orders} OP, ${fmt.format(Number(r.tons))} toneladas, ${fmt.format(prod)} ton/h efectiva y ${pct.format(stop)} de parada. Causa principal: <strong>${r.cause}</strong>. Equipo/área: <strong>${r.equipment}</strong>.`;
+      return `<strong>${r.date}</strong>: ${r.orders} OP, productividad ${fmt.format(prod)} por hora y ${pct.format(stop)} de parada. Horas detenidas: ${fmt.format(Number(r.stopHours))}. Causa principal: <strong>${r.cause}</strong>. Equipo/área: <strong>${r.equipment}</strong>.`;
     }
 
     function renderScatter(rows) {
@@ -1720,11 +2080,15 @@
       const regText = reg
         ? `La regresión estima βOP=${fmt.format(reg.bOp)} y βParada=${fmt.format(reg.bStop)}; en valor absoluto, ${Math.abs(reg.bStop) > Math.abs(reg.bOp) ? "las horas de parada pesan más que las OP" : "las OP pesan más que las horas de parada"} sobre la productividad.`
         : "La regresión requiere más datos o mayor variación para ser estable.";
+      const mainDriver = Math.abs(cStop) >= Math.abs(cOp) ? "las horas detenidas" : "la carga de OP";
+      const nextAction = Math.abs(cStop) >= Math.abs(cOp)
+        ? `Intervenir la causa ${causes[0]?.[0] || "principal"} y revisar el equipo ${equip[0]?.[0] || "más crítico"}.`
+        : "Revisar programación, secuencia de OP y cambios de referencia para estabilizar el flujo.";
       $("report").innerHTML = `
-        <strong>${periodText()}:</strong> productividad promedio de <strong>${fmt.format(average(prod))} ton/h</strong>, con <strong>${fmt.format(totalStop)} horas</strong> detenidas acumuladas.
-        La lectura estadística indica que el volumen de OP ${opText}. En paralelo, ${stopText}.
-        ${regText}
-        La causa de mayor peso es <strong>${causes[0]?.[0] || "-"}</strong> (${causes[0] ? fmt.format(causes[0][1]) : "0"} h) y el equipo/área más crítico es <strong>${equip[0]?.[0] || "-"}</strong>.
+        <p><strong>Conclusión:</strong> en ${periodText()}, la productividad promedio fue <strong>${fmt.format(average(prod))} por hora</strong> con <strong>${fmt.format(totalStop)} horas detenidas</strong>.</p>
+        <p><strong>Driver principal:</strong> el comportamiento del periodo está más explicado por <strong>${mainDriver}</strong>. ${regText}</p>
+        <p><strong>Causa crítica:</strong> ${causes[0]?.[0] || "-"} concentra ${causes[0] ? fmt.format(causes[0][1]) : "0"} h; el equipo/área más sensible es <strong>${equip[0]?.[0] || "-"}</strong>.</p>
+        <p><strong>Acción recomendada:</strong> ${nextAction}</p>
       `;
     }
 
@@ -1777,9 +2141,9 @@
         return {
           date: parseDateValue(get("fecha", "date", "dia")),
           orders: Math.round(parseNumber(get("op", "ordenes", "ordenesproduccion", "numeroop", "numeroordenesdeproduccion"))),
-          tons: parseNumber(get("toneladas", "ton", "tonproducidas", "toneladasproducidas")),
-          opHours: parseNumber(get("horasoperacion", "horasoperacionefectivas", "horasefectivas", "horasdeoperacion")),
+          prodHour: parseNumber(get("productividad", "productividadhora", "productividadporhora", "prodhora", "tonh", "tonhora")),
           stopHours: parseNumber(get("horasparada", "horasdetenidas", "horasdeparada", "parada")),
+          opHours: Math.max(0, 24 - parseNumber(get("horasparada", "horasdetenidas", "horasdeparada", "parada"))),
           cause: String(get("causa", "causaprincipal", "causaprincipalparada") || "Sin clasificar").trim(),
           equipment: String(get("equipo", "area", "equipoarea", "equipoafectado") || "Sin equipo").trim()
         };
@@ -1848,9 +2212,9 @@
         const rec = {
           date: $("date").value,
           orders: Number($("orders").value),
-          tons: Number($("tons").value),
-          opHours: Number($("opHours").value),
+          prodHour: Number($("prodHour").value),
           stopHours: Number($("stopHours").value),
+          opHours: Math.max(0, 24 - Number($("stopHours").value)),
           cause: $("cause").value,
           equipment: $("equipment").value.trim(),
           notes: $("notes").value.trim()
@@ -1917,8 +2281,8 @@
     }
 
     function exportCsv() {
-      const headers = ["Fecha", "OP", "Toneladas", "Horas operacion", "Horas parada", "Causa", "Equipo", "Productividad", "Porcentaje parada"];
-      const rows = filteredRecords().map(r => [r.date, r.orders, r.tons, r.opHours, r.stopHours, r.cause, r.equipment, productivity(r).toFixed(4), stopRate(r).toFixed(4)]);
+      const headers = ["Fecha", "OP", "Productividad por hora", "Horas efectivas estimadas", "Horas detenidas", "Causa", "Equipo", "Porcentaje parada"];
+      const rows = filteredRecords().map(r => [r.date, r.orders, productivity(r).toFixed(4), effectiveHours(r).toFixed(2), r.stopHours, r.cause, r.equipment, stopRate(r).toFixed(4)]);
       const csv = [headers, ...rows].map(row => row.map(v => `"${String(v).replaceAll('"', '""')}"`).join(",")).join("\n");
       const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
       const url = URL.createObjectURL(blob);
